@@ -28,6 +28,9 @@
 		000000000000000000000052 /* FreezerFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000032 /* FreezerFormView.swift */; };
 		000000000000000000000053 /* MealPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000033 /* MealPlanView.swift */; };
 		000000000000000000000054 /* MealPlanFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000034 /* MealPlanFormView.swift */; };
+		000000000000000000000055 /* mealcube-hero.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000036 /* mealcube-hero.png */; };
+		000000000000000000000056 /* cube-trays.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000037 /* cube-trays.png */; };
+		000000000000000000000057 /* bowl-plan.png in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000038 /* bowl-plan.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +56,9 @@
 		000000000000000000000032 /* FreezerFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreezerFormView.swift; sourceTree = "<group>"; };
 		000000000000000000000033 /* MealPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanView.swift; sourceTree = "<group>"; };
 		000000000000000000000034 /* MealPlanFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanFormView.swift; sourceTree = "<group>"; };
+		000000000000000000000036 /* mealcube-hero.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mealcube-hero.png"; sourceTree = "<group>"; };
+		000000000000000000000037 /* cube-trays.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cube-trays.png"; sourceTree = "<group>"; };
+		000000000000000000000038 /* bowl-plan.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "bowl-plan.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,9 +86,20 @@
 				000000000000000000000020 /* MealCubeTrackerApp.swift */,
 				00000000000000000000000E /* Models */,
 				00000000000000000000000F /* Data */,
+				000000000000000000000035 /* Assets */,
 				000000000000000000000010 /* Views */,
 			);
 			path = MealCubeTracker;
+			sourceTree = "<group>";
+		};
+		000000000000000000000035 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000036 /* mealcube-hero.png */,
+				000000000000000000000037 /* cube-trays.png */,
+				000000000000000000000038 /* bowl-plan.png */,
+			);
+			path = Assets;
 			sourceTree = "<group>";
 		};
 		00000000000000000000000E /* Models */ = {
@@ -194,6 +211,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				000000000000000000000055 /* mealcube-hero.png in Resources */,
+				000000000000000000000056 /* cube-trays.png in Resources */,
+				000000000000000000000057 /* bowl-plan.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

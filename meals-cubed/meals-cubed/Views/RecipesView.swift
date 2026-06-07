@@ -20,6 +20,10 @@ struct RecipesView: View {
         recipes.filter(\.isBowlIdea)
     }
 
+    private var snackRecipes: [Recipe] {
+        recipes.filter { $0.recipeType == .snack }
+    }
+
     private var themeCounts: [String: Int] {
         Dictionary(grouping: recipes, by: \.themeName)
             .mapValues(\.count)
@@ -136,14 +140,14 @@ struct RecipesView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.76)
 
-            Text("Low-effort freezer bowls organized by theme, protein, cube size, and macro targets.")
+            Text("Low-effort freezer bowls and healthy snacks organized by theme, protein, cube size, and macro targets.")
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(Color.controlCream.opacity(0.7))
 
             HStack(spacing: 10) {
                 LibraryStat(value: "\(bowlRecipes.count)", title: "bowl ideas", color: .controlLime)
                 LibraryStat(value: "\(RecipeTheme.all.count)", title: "themes", color: .controlPaprika)
-                LibraryStat(value: "\(recipes.filter(\.isVegetarian).count)", title: "vegetarian", color: .controlSteel)
+                LibraryStat(value: "\(snackRecipes.count)", title: "snacks", color: .controlSteel)
             }
             .padding(.top, 4)
         }

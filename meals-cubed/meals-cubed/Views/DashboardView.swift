@@ -22,6 +22,10 @@ struct DashboardView: View {
         recipes.filter(\.isBowlIdea)
     }
 
+    private var snackRecipes: [Recipe] {
+        recipes.filter { $0.recipeType == .snack }
+    }
+
     private var activeFreezerItems: [FreezerItem] {
         freezerItems.filter { !$0.isArchived }
     }
@@ -31,7 +35,10 @@ struct DashboardView: View {
     }
 
     private var shouldLoadStarterData: Bool {
-        foods.isEmpty || recipes.isEmpty || bowlRecipes.count < 60
+        foods.isEmpty ||
+            recipes.isEmpty ||
+            bowlRecipes.count < StarterData.bowlCatalogTarget ||
+            snackRecipes.count < StarterData.snackCatalogTarget
     }
 
     private var plannedCubes: Int {

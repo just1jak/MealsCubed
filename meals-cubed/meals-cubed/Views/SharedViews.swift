@@ -267,7 +267,8 @@ struct RecipeTheme: Identifiable {
         .init(id: "cozy-vegetarian", name: "Cozy Vegetarian", shortName: "Cozy", symbolName: "carrot.fill", color: Color(red: 0.68, green: 0.36, blue: 0.06)),
         .init(id: "lean-turkey", name: "Lean Turkey", shortName: "Turkey", symbolName: "takeoutbag.and.cup.and.straw.fill", color: Color(red: 0.47, green: 0.34, blue: 0.27)),
         .init(id: "chicken", name: "Chicken", shortName: "Chicken", symbolName: "fork.knife", color: Color(red: 0.76, green: 0.43, blue: 0.16)),
-        .init(id: "tofu-beans", name: "Tofu + Beans", shortName: "Tofu", symbolName: "leaf.circle.fill", color: Color(red: 0.24, green: 0.55, blue: 0.30))
+        .init(id: "tofu-beans", name: "Tofu + Beans", shortName: "Tofu", symbolName: "leaf.circle.fill", color: Color(red: 0.24, green: 0.55, blue: 0.30)),
+        .init(id: "healthy-snacks", name: "Healthy Snacks", shortName: "Snacks", symbolName: "cart.fill", color: Color(red: 0.0, green: 0.58, blue: 0.54))
     ]
 
     static func theme(named name: String) -> RecipeTheme {
@@ -322,6 +323,7 @@ extension Recipe {
 
     private var inferredThemeName: String {
         let lowercasedName = name.lowercased()
+        if recipeType == .snack { return "Healthy Snacks" }
         if lowercasedName.contains("taco") || lowercasedName.contains("burrito") || lowercasedName.contains("chipotle") || lowercasedName.contains("fajita") || lowercasedName.contains("enchilada") { return "Tex-Mex" }
         if lowercasedName.contains("greek") || lowercasedName.contains("mediterranean") || lowercasedName.contains("tzatziki") || lowercasedName.contains("harissa") || lowercasedName.contains("za'atar") { return "Mediterranean" }
         if lowercasedName.contains("gochujang") || lowercasedName.contains("bibimbap") || lowercasedName.contains("kimchi") || lowercasedName.contains("korean") { return "Korean" }

@@ -10,6 +10,9 @@ enum HealthTargets {
 
 @MainActor
 enum StarterData {
+    static let bowlCatalogTarget = 60
+    static let snackCatalogTarget = 20
+
     static func load(into context: ModelContext) throws {
         try seedFoods(into: context)
         try seedRecipes(into: context)
@@ -338,7 +341,7 @@ private let coreRecipeSeeds: [RecipeSeed] = [
     .init(name: "Lemon Dijon Dressing Concentrate", recipeType: .sauce, cubeSize: .twoTbsp, cubeYield: 12, servings: 12, calories: 80, protein: 0, carbs: 2, fat: 8, saturatedFat: 1, fiber: 0, sodium: 0, ingredients: "Lemon juice, Dijon mustard, olive oil, garlic, herbs", instructions: "Blend or whisk and portion into 2 Tbsp cubes.", notes: "Use as a fresh salad booster.", isVegetarian: true)
 ]
 
-private let recipeSeeds: [RecipeSeed] = coreRecipeSeeds + lowEffortBowlSeeds
+private let recipeSeeds: [RecipeSeed] = coreRecipeSeeds + lowEffortBowlSeeds + healthySnackSeeds
 
 private func bowlSeed(
     _ name: String,
@@ -395,6 +398,402 @@ private func bowlSeed(
         isVegetarian: isVegetarian
     )
 }
+
+private func snackSeed(
+    _ name: String,
+    summary: String,
+    ingredients: String,
+    instructions: String,
+    calories: Double,
+    protein: Double,
+    carbs: Double,
+    fat: Double,
+    saturatedFat: Double,
+    fiber: Double,
+    isVegetarian: Bool = true,
+    prepMinutes: Int = 5
+) -> RecipeSeed {
+    RecipeSeed(
+        name: name,
+        recipeType: .snack,
+        cubeSize: .none,
+        cubeYield: 0,
+        servings: 1,
+        calories: calories,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        saturatedFat: saturatedFat,
+        fiber: fiber,
+        sodium: 0,
+        ingredients: ingredients,
+        instructions: instructions,
+        notes: """
+        Theme: Healthy Snacks
+        Prep: \(prepMinutes) min
+        Summary: \(summary)
+        Snack Idea
+        Low effort, LDL-friendly, and easy to add to a weekly plan.
+        """,
+        isVegetarian: isVegetarian
+    )
+}
+
+private let healthySnackSeeds: [RecipeSeed] = [
+    snackSeed(
+        "Greek Yogurt Berry Crunch",
+        summary: "High-protein yogurt with berries and a little crunch.",
+        ingredients: """
+        Nonfat Greek yogurt
+        Berries
+        High-fiber cereal or oats
+        Chia seeds
+        Cinnamon
+        """,
+        instructions: "Layer yogurt, berries, cereal or oats, chia, and cinnamon.",
+        calories: 250,
+        protein: 24,
+        carbs: 32,
+        fat: 4,
+        saturatedFat: 0,
+        fiber: 8
+    ),
+    snackSeed(
+        "Apple Almond Butter Plate",
+        summary: "Apple slices with measured almond butter and cinnamon.",
+        ingredients: """
+        Apples
+        Almond butter
+        Cinnamon
+        """,
+        instructions: "Slice apple and serve with one measured spoon of almond butter.",
+        calories: 230,
+        protein: 6,
+        carbs: 30,
+        fat: 11,
+        saturatedFat: 1,
+        fiber: 7
+    ),
+    snackSeed(
+        "Cottage Cheese Pineapple Cup",
+        summary: "Lean protein with fruit for a fast sweet snack.",
+        ingredients: """
+        Low-fat cottage cheese
+        Pineapple
+        Ground flaxseed
+        """,
+        instructions: "Spoon cottage cheese into a bowl and top with pineapple and flaxseed.",
+        calories: 240,
+        protein: 26,
+        carbs: 24,
+        fat: 5,
+        saturatedFat: 2,
+        fiber: 4
+    ),
+    snackSeed(
+        "Hummus Veggie Box",
+        summary: "Fiber-rich vegetables with hummus for crunch.",
+        ingredients: """
+        Hummus
+        Baby carrots
+        Cucumber
+        Bell peppers
+        Cherry tomatoes
+        """,
+        instructions: "Pack hummus with sliced vegetables.",
+        calories: 220,
+        protein: 8,
+        carbs: 28,
+        fat: 9,
+        saturatedFat: 1,
+        fiber: 9
+    ),
+    snackSeed(
+        "Edamame Sea Salt Cup",
+        summary: "Simple high-protein edamame with lemon.",
+        ingredients: """
+        Shelled edamame
+        Lemon
+        Sea salt
+        Red pepper flakes
+        """,
+        instructions: "Steam edamame, season lightly, and chill or eat warm.",
+        calories: 190,
+        protein: 18,
+        carbs: 15,
+        fat: 8,
+        saturatedFat: 1,
+        fiber: 8
+    ),
+    snackSeed(
+        "Turkey Cucumber Rollups",
+        summary: "Lean turkey wrapped with cucumber and mustard.",
+        ingredients: """
+        Sliced turkey breast
+        Cucumber
+        Mustard
+        Whole-grain crackers
+        """,
+        instructions: "Roll turkey around cucumber strips and serve with crackers.",
+        calories: 210,
+        protein: 24,
+        carbs: 18,
+        fat: 5,
+        saturatedFat: 1,
+        fiber: 3,
+        isVegetarian: false
+    ),
+    snackSeed(
+        "Tuna Avocado Rice Cakes",
+        summary: "Lean tuna, avocado, and rice cakes for a filling snack.",
+        ingredients: """
+        Tuna packet
+        Avocado
+        Brown rice cakes
+        Lemon
+        Black pepper
+        """,
+        instructions: "Mash tuna with avocado and lemon, then spread over rice cakes.",
+        calories: 260,
+        protein: 25,
+        carbs: 24,
+        fat: 9,
+        saturatedFat: 1,
+        fiber: 5,
+        isVegetarian: false
+    ),
+    snackSeed(
+        "Protein Oats Cup",
+        summary: "No-cook oats with protein and berries.",
+        ingredients: """
+        Oats
+        Protein powder
+        Nonfat Greek yogurt
+        Berries
+        Chia seeds
+        """,
+        instructions: "Stir ingredients together and chill.",
+        calories: 310,
+        protein: 30,
+        carbs: 40,
+        fat: 5,
+        saturatedFat: 1,
+        fiber: 8
+    ),
+    snackSeed(
+        "Chia Berry Pudding",
+        summary: "Make-ahead chia pudding with berries.",
+        ingredients: """
+        Chia seeds
+        Unsweetened almond milk
+        Berries
+        Vanilla
+        Cinnamon
+        """,
+        instructions: "Stir chia with almond milk, vanilla, and cinnamon. Chill and top with berries.",
+        calories: 220,
+        protein: 8,
+        carbs: 25,
+        fat: 10,
+        saturatedFat: 1,
+        fiber: 13
+    ),
+    snackSeed(
+        "Egg Fruit Plate",
+        summary: "Boiled eggs with fruit for a portable snack.",
+        ingredients: """
+        Hard-boiled eggs
+        Grapes or berries
+        Baby carrots
+        """,
+        instructions: "Pack eggs with fruit and carrots.",
+        calories: 240,
+        protein: 14,
+        carbs: 24,
+        fat: 10,
+        saturatedFat: 3,
+        fiber: 5
+    ),
+    snackSeed(
+        "Roasted Chickpea Crunch",
+        summary: "Crunchy chickpeas with smoky seasoning.",
+        ingredients: """
+        Chickpeas
+        Olive oil spray
+        Smoked paprika
+        Garlic powder
+        Lemon
+        """,
+        instructions: "Season chickpeas and roast or air fry until crisp.",
+        calories: 210,
+        protein: 10,
+        carbs: 32,
+        fat: 5,
+        saturatedFat: 1,
+        fiber: 9
+    ),
+    snackSeed(
+        "Salsa Cottage Cheese Bowl",
+        summary: "Cottage cheese with salsa and vegetables.",
+        ingredients: """
+        Low-fat cottage cheese
+        Salsa
+        Bell peppers
+        Cucumber
+        Cilantro
+        """,
+        instructions: "Top cottage cheese with salsa, chopped vegetables, and cilantro.",
+        calories: 210,
+        protein: 26,
+        carbs: 17,
+        fat: 5,
+        saturatedFat: 2,
+        fiber: 4
+    ),
+    snackSeed(
+        "Smoked Salmon Cucumber Stack",
+        summary: "Salmon, cucumber, and yogurt-dill topping.",
+        ingredients: """
+        Smoked salmon
+        Cucumber
+        Nonfat Greek yogurt
+        Dill
+        Lemon
+        """,
+        instructions: "Top cucumber rounds with salmon, yogurt, dill, and lemon.",
+        calories: 190,
+        protein: 22,
+        carbs: 9,
+        fat: 7,
+        saturatedFat: 1,
+        fiber: 2,
+        isVegetarian: false
+    ),
+    snackSeed(
+        "Banana Peanut Yogurt Bowl",
+        summary: "Greek yogurt, banana, and peanut powder.",
+        ingredients: """
+        Nonfat Greek yogurt
+        Banana
+        Peanut powder
+        Cinnamon
+        """,
+        instructions: "Top yogurt with sliced banana, peanut powder, and cinnamon.",
+        calories: 270,
+        protein: 26,
+        carbs: 40,
+        fat: 3,
+        saturatedFat: 0,
+        fiber: 5
+    ),
+    snackSeed(
+        "Black Bean Dip Veggie Cup",
+        summary: "Quick black bean dip with crunchy vegetables.",
+        ingredients: """
+        Black beans
+        Salsa
+        Lime
+        Baby carrots
+        Bell peppers
+        """,
+        instructions: "Mash beans with salsa and lime, then serve with vegetables.",
+        calories: 230,
+        protein: 11,
+        carbs: 40,
+        fat: 3,
+        saturatedFat: 0,
+        fiber: 13
+    ),
+    snackSeed(
+        "Trail Mix Portion Pack",
+        summary: "Measured nuts, pumpkin seeds, and fruit.",
+        ingredients: """
+        Almonds
+        Pumpkin seeds
+        Unsweetened dried fruit
+        High-fiber cereal
+        """,
+        instructions: "Portion into small snack bags or containers.",
+        calories: 240,
+        protein: 8,
+        carbs: 22,
+        fat: 15,
+        saturatedFat: 2,
+        fiber: 5
+    ),
+    snackSeed(
+        "Tofu Chocolate Pudding",
+        summary: "Silken tofu blended into a higher-protein pudding.",
+        ingredients: """
+        Silken tofu
+        Cocoa powder
+        Maple syrup
+        Vanilla
+        Berries
+        """,
+        instructions: "Blend tofu, cocoa, maple, and vanilla. Chill and top with berries.",
+        calories: 240,
+        protein: 15,
+        carbs: 28,
+        fat: 8,
+        saturatedFat: 1,
+        fiber: 5
+    ),
+    snackSeed(
+        "Caprese Cottage Cheese Cup",
+        summary: "Cottage cheese, tomatoes, basil, and balsamic.",
+        ingredients: """
+        Low-fat cottage cheese
+        Cherry tomatoes
+        Basil
+        Balsamic vinegar
+        Whole-grain crackers
+        """,
+        instructions: "Top cottage cheese with tomatoes, basil, and balsamic. Serve with crackers.",
+        calories: 250,
+        protein: 25,
+        carbs: 24,
+        fat: 6,
+        saturatedFat: 2,
+        fiber: 4
+    ),
+    snackSeed(
+        "Lentil Cucumber Salad Cup",
+        summary: "Ready lentils with cucumber and lemon.",
+        ingredients: """
+        Cooked lentils
+        Cucumber
+        Lemon
+        Parsley
+        Olive oil
+        """,
+        instructions: "Toss lentils with cucumber, lemon, parsley, and a little olive oil.",
+        calories: 230,
+        protein: 12,
+        carbs: 32,
+        fat: 7,
+        saturatedFat: 1,
+        fiber: 12
+    ),
+    snackSeed(
+        "Protein Smoothie Pack",
+        summary: "Frozen smoothie ingredients ready to blend.",
+        ingredients: """
+        Protein powder
+        Frozen berries
+        Spinach
+        Unsweetened almond milk
+        Ground flaxseed
+        """,
+        instructions: "Blend ingredients with almond milk.",
+        calories: 280,
+        protein: 28,
+        carbs: 30,
+        fat: 7,
+        saturatedFat: 1,
+        fiber: 9
+    )
+]
 
 private let lowEffortBowlSeeds: [RecipeSeed] = [
     bowlSeed(

@@ -8,6 +8,8 @@ struct MealPlanView: View {
 
     @State private var activeSheet: MealPlanSheet?
     @State private var showCompleted = true
+    @State private var didAutoLoadCatalog = false
+    @State private var catalogLoadError: String?
 
     init() {}
 
@@ -23,31 +25,41 @@ struct MealPlanView: View {
             .sortedForPlanning
     }
 
+    private var shouldLoadCatalog: Bool {
+        recipes.isEmpty || recipes.filter(\.isBowlIdea).count < 60
+    }
+
     var body: some View {
         List {
             Section {
                 Button {
                     activeSheet = .buildWeek
                 } label: {
-                    Label("Build Upcoming Weeks", systemImage: "calendar.badge.plus")
+                    Label("Choose Meals From Catalog", systemImage: "checklist")
                 }
 
                 Button {
                     activeSheet = .add
                 } label: {
-                    Label("Add Single Day", systemImage: "plus")
+                    Label("Custom Day", systemImage: "square.and.pencil")
                 }
 
                 Toggle("Show completed", isOn: $showCompleted)
+
+                if let catalogLoadError {
+                    Text(catalogLoadError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
             } header: {
-                Text("Plan Builder")
+                Text("Catalog Planner")
             } footer: {
-                Text("Select the bowls you want and the app will fill the next week or several weeks in order. Existing dates are updated instead of duplicated.")
+                Text("The catalog stays ready to go. Your meal plan is just the meals you choose for the coming week or weeks.")
             }
 
             Section("Plans") {
                 if visibleEntries.isEmpty {
-                    EmptyStateView(title: "No Meal Plans", message: "Build the coming week from recipes or add one day manually.", systemImage: "calendar")
+                    EmptyStateView(title: "No Meal Plans", message: "Choose meals from the catalog to fill the coming week.", systemImage: "calendar")
                         .listRowBackground(Color.clear)
                 } else {
                     ForEach(visibleEntries) { entry in
@@ -71,16 +83,16 @@ struct MealPlanView: View {
                 Button {
                     activeSheet = .buildWeek
                 } label: {
-                    Image(systemName: "calendar.badge.plus")
+                    Image(systemName: "checklist")
                 }
-                .accessibilityLabel("Build Upcoming Weeks")
+                .accessibilityLabel("Choose Meals From Catalog")
 
                 Button {
                     activeSheet = .add
                 } label: {
                     Image(systemName: "plus")
                 }
-                .accessibilityLabel("Add Single Day")
+                .accessibilityLabel("Custom Day")
             }
         }
         .sheet(item: $activeSheet) { sheet in
@@ -94,6 +106,19 @@ struct MealPlanView: View {
                     MealPlanFormView(entry: entry)
                 }
             }
+        }
+        .task {
+            autoLoadCatalogIfNeeded()
+        }
+    }
+
+    private func autoLoadCatalogIfNeeded() {
+        guard !didAutoLoadCatalog, shouldLoadCatalog else { return }
+        didAutoLoadCatalog = true
+        do {
+            try StarterData.load(into: modelContext)
+        } catch {
+            catalogLoadError = "Could not load catalog: \(error.localizedDescription)"
         }
     }
 }
@@ -229,7 +254,7 @@ private struct BuildMealPlanView: View {
                 }
             }
 
-            Section("Choose Recipes") {
+            Section("Choose Catalog Meals") {
                 Picker("Theme", selection: $themeFilter) {
                     Text("All themes").tag(nil as String?)
                     ForEach(RecipeTheme.all) { theme in
@@ -287,7 +312,7 @@ private struct BuildMealPlanView: View {
                 }
             }
         }
-        .navigationTitle("Build Week")
+        .navigationTitle("Choose Meals")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search recipes")
         .toolbar {
@@ -297,7 +322,7 @@ private struct BuildMealPlanView: View {
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Add") {
+                Button("Add to Plan") {
                     save()
                 }
                 .disabled(selectedRecipeIDs.isEmpty)

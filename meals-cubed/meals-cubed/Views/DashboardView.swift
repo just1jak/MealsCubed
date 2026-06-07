@@ -580,18 +580,19 @@ private struct SouperCubeTrayThumbnail: View {
     var body: some View {
         let trayLayout = layout
 
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: trayLayout.gap), count: trayLayout.columns),
-            spacing: trayLayout.gap
-        ) {
-            ForEach(0..<trayLayout.cellCount, id: \.self) { index in
-                TrayFoodCell(index: index, cubeSize: cubeSize)
-                    .aspectRatio(trayLayout.cellAspectRatio, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: trayLayout.cellCorner, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: trayLayout.cellCorner, style: .continuous)
-                            .stroke(Color.black.opacity(0.45), lineWidth: 1.1)
-                    )
+        VStack(spacing: trayLayout.gap) {
+            ForEach(0..<trayLayout.rows, id: \.self) { row in
+                HStack(spacing: trayLayout.gap) {
+                    ForEach(0..<trayLayout.columns, id: \.self) { column in
+                        let index = row * trayLayout.columns + column
+                        TrayFoodCell(index: index, cubeSize: cubeSize)
+                            .clipShape(RoundedRectangle(cornerRadius: trayLayout.cellCorner, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: trayLayout.cellCorner, style: .continuous)
+                                    .stroke(Color.black.opacity(0.48), lineWidth: 1.1)
+                            )
+                    }
+                }
             }
         }
         .padding(trayLayout.padding)
@@ -624,7 +625,7 @@ private struct SouperCubeTrayLayout {
     var cellCount: Int {
         switch cubeSize {
         case .twoTbsp:
-            12
+            10
         case .halfCup:
             6
         case .oneCup:
@@ -636,11 +637,24 @@ private struct SouperCubeTrayLayout {
         }
     }
 
+    var rows: Int {
+        switch cubeSize {
+        case .twoTbsp:
+            2
+        case .halfCup, .oneCup, .twoCup, .none:
+            1
+        }
+    }
+
     var columns: Int {
         switch cubeSize {
         case .twoTbsp:
-            3
-        case .halfCup, .oneCup, .twoCup:
+            5
+        case .halfCup:
+            6
+        case .oneCup:
+            4
+        case .twoCup:
             2
         case .none:
             1
@@ -650,43 +664,55 @@ private struct SouperCubeTrayLayout {
     var size: CGSize {
         switch cubeSize {
         case .twoTbsp:
-            CGSize(width: 57, height: 60)
+            CGSize(width: 68, height: 46)
         case .halfCup:
-            CGSize(width: 55, height: 64)
+            CGSize(width: 68, height: 38)
         case .oneCup:
-            CGSize(width: 58, height: 58)
+            CGSize(width: 68, height: 38)
         case .twoCup:
-            CGSize(width: 66, height: 48)
+            CGSize(width: 68, height: 38)
         case .none:
-            CGSize(width: 50, height: 50)
+            CGSize(width: 54, height: 36)
         }
     }
 
     var padding: CGFloat {
         switch cubeSize {
         case .twoTbsp:
-            5
+            5.5
         case .twoCup:
             6
+        default:
+            5
+        }
+    }
+
+    var gap: CGFloat {
+        switch cubeSize {
+        case .twoTbsp:
+            3
+        case .halfCup:
+            2.5
+        case .oneCup:
+            4
+        default:
+            5
+        }
+    }
+
+    var cellCorner: CGFloat {
+        switch cubeSize {
+        case .twoTbsp:
+            3.5
+        case .halfCup:
+            4.5
         default:
             6
         }
     }
 
-    var gap: CGFloat {
-        cubeSize == .twoTbsp ? 3 : 5
-    }
-
-    var cellCorner: CGFloat {
-        cubeSize == .twoTbsp ? 3.5 : 6
-    }
-
     var trayCorner: CGFloat {
-        cubeSize == .twoCup ? 9 : 8
-    }
-
-    var cellAspectRatio: CGFloat {
-        cubeSize == .twoCup ? 1.35 : 1
+        cubeSize == .twoTbsp ? 8 : 9
     }
 }
 

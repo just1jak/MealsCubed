@@ -574,7 +574,7 @@ struct CubeTrayDiagram: View {
     private var cellCount: Int {
         switch cubeSize {
         case .twoTbsp:
-            12
+            10
         case .halfCup:
             6
         case .oneCup:
@@ -590,17 +590,49 @@ struct CubeTrayDiagram: View {
         let columnCount: Int
         switch cubeSize {
         case .twoTbsp:
-            columnCount = 3
-        case .halfCup, .oneCup, .twoCup:
+            columnCount = 5
+        case .halfCup:
+            columnCount = 6
+        case .oneCup:
+            columnCount = 4
+        case .twoCup:
             columnCount = 2
         case .none:
             columnCount = 1
         }
-        return Array(repeating: GridItem(.flexible(), spacing: compact ? 3 : 5), count: columnCount)
+        return Array(repeating: GridItem(.flexible(), spacing: spacing), count: columnCount)
+    }
+
+    private var spacing: CGFloat {
+        switch cubeSize {
+        case .twoTbsp:
+            compact ? 2 : 3
+        case .halfCup:
+            compact ? 2 : 3
+        case .oneCup:
+            compact ? 3 : 5
+        default:
+            compact ? 4 : 5
+        }
+    }
+
+    private var cellAspectRatio: CGFloat {
+        switch cubeSize {
+        case .twoTbsp:
+            1.0
+        case .halfCup:
+            0.5
+        case .oneCup:
+            0.58
+        case .twoCup:
+            0.95
+        case .none:
+            1.0
+        }
     }
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: compact ? 3 : 5) {
+        LazyVGrid(columns: columns, spacing: spacing) {
             ForEach(0..<cellCount, id: \.self) { index in
                 RoundedRectangle(cornerRadius: compact ? 4 : 6, style: .continuous)
                     .fill(index < filledCount ? tint : tint.opacity(0.15))
@@ -608,7 +640,7 @@ struct CubeTrayDiagram: View {
                         RoundedRectangle(cornerRadius: compact ? 4 : 6, style: .continuous)
                             .stroke(tint.opacity(index < filledCount ? 0.75 : 0.25), lineWidth: 1)
                     )
-                    .aspectRatio(cubeSize == .twoCup ? 1.35 : 1.0, contentMode: .fit)
+                    .aspectRatio(cellAspectRatio, contentMode: .fit)
             }
         }
         .padding(compact ? 5 : 8)

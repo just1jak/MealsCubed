@@ -13,6 +13,24 @@ enum StarterData {
     static let bowlCatalogTarget = 60
     static let snackCatalogTarget = 20
 
+    static func recipesNeedRefresh(_ recipes: [Recipe]) -> Bool {
+        recipes.isEmpty ||
+            recipes.filter(\.isBowlIdea).count < bowlCatalogTarget ||
+            recipes.filter { $0.recipeType == .snack }.count < snackCatalogTarget ||
+            recipes.contains { recipe in
+                recipe.isStarterData &&
+                    recipe.ingredientsText.contains("Base: ") &&
+                    !recipe.ingredientsText.contains("Base: 4 cups cooked")
+            } ||
+            recipes.contains { recipe in
+                recipe.isStarterData &&
+                    recipe.recipeType == .snack &&
+                    !recipe.ingredientsText.contains("cup") &&
+                    !recipe.ingredientsText.contains("Tbsp") &&
+                    !recipe.ingredientsText.contains("oz")
+            }
+    }
+
     static func load(into context: ModelContext) throws {
         try seedFoods(into: context)
         try seedRecipes(into: context)
@@ -50,29 +68,41 @@ enum StarterData {
     }
 
     private static func seedRecipes(into context: ModelContext) throws {
-        let existingNames = Set(try context.fetch(FetchDescriptor<Recipe>()).map { $0.name.seedKey })
-        for seed in recipeSeeds where !existingNames.contains(seed.name.seedKey) {
-            context.insert(Recipe(
-                name: seed.name,
-                recipeType: seed.recipeType,
-                status: .wantToTry,
-                cubeSize: seed.cubeSize,
-                cubeYield: seed.cubeYield,
-                servings: seed.servings,
-                caloriesPerServing: seed.calories,
-                proteinPerServing: seed.protein,
-                carbsPerServing: seed.carbs,
-                fatPerServing: seed.fat,
-                saturatedFatPerServing: seed.saturatedFat,
-                fiberPerServing: seed.fiber,
-                sodiumPerServing: seed.sodium,
-                ingredientsText: seed.ingredients,
-                instructionsText: seed.instructions,
-                notes: seed.notes,
-                isVegetarian: seed.isVegetarian,
-                isStarterData: true
-            ))
+        let existingRecipes = try context.fetch(FetchDescriptor<Recipe>())
+        let recipesByName = Dictionary(grouping: existingRecipes, by: { $0.name.seedKey })
+            .compactMapValues(\.first)
+
+        for seed in recipeSeeds {
+            if let recipe = recipesByName[seed.name.seedKey] {
+                guard recipe.isStarterData else { continue }
+                apply(seed, to: recipe)
+            } else {
+                let recipe = Recipe(name: seed.name, recipeType: seed.recipeType, status: .wantToTry)
+                apply(seed, to: recipe)
+                context.insert(recipe)
+            }
         }
+    }
+
+    private static func apply(_ seed: RecipeSeed, to recipe: Recipe) {
+        recipe.name = seed.name
+        recipe.recipeType = seed.recipeType
+        recipe.cubeSize = seed.cubeSize
+        recipe.cubeYield = seed.cubeYield
+        recipe.servings = seed.servings
+        recipe.caloriesPerServing = seed.calories
+        recipe.proteinPerServing = seed.protein
+        recipe.carbsPerServing = seed.carbs
+        recipe.fatPerServing = seed.fat
+        recipe.saturatedFatPerServing = seed.saturatedFat
+        recipe.fiberPerServing = seed.fiber
+        recipe.sodiumPerServing = seed.sodium
+        recipe.ingredientsText = seed.ingredients
+        recipe.instructionsText = seed.instructions
+        recipe.notes = seed.notes
+        recipe.isVegetarian = seed.isVegetarian
+        recipe.isStarterData = true
+        recipe.dateModified = Date()
     }
 
     private static func seedFreezerItems(into context: ModelContext) throws {
@@ -203,11 +233,11 @@ private let coreRecipeSeeds: [RecipeSeed] = [
         2 onions, diced
         3 bell peppers, diced
         2 zucchini, diced
-        Chili powder
-        Cumin
-        Smoked paprika
-        Garlic
-        Oregano
+        2 Tbsp chili powder
+        1 Tbsp cumin
+        1 Tbsp smoked paprika
+        4 garlic cloves, minced
+        2 tsp oregano
         Optional: 2 cups frozen corn
         """,
         instructions: """
@@ -242,10 +272,10 @@ private let coreRecipeSeeds: [RecipeSeed] = [
         2 zucchini
         1 bag frozen spinach or kale
         4 cups low-sodium chicken broth
-        Cumin
-        Garlic
-        Oregano
-        Lime
+        1 Tbsp cumin
+        4 garlic cloves, minced
+        2 tsp oregano
+        Juice of 2 limes
         """,
         instructions: """
         1. Add chicken, broth, salsa verde, onion, peppers, zucchini, and spices to a large pot or slow cooker.
@@ -279,12 +309,12 @@ private let coreRecipeSeeds: [RecipeSeed] = [
         1 bag frozen spinach
         1 bag frozen cauliflower or mixed vegetables
         1 onion
-        Curry powder
-        Turmeric
-        Cumin
-        Garlic
-        Ginger
-        Optional: frozen shelled edamame for extra protein
+        2 Tbsp curry powder
+        1 tsp turmeric
+        1 Tbsp cumin
+        4 garlic cloves, minced
+        1 Tbsp grated ginger
+        Optional: 2 cups frozen shelled edamame for extra protein
         """,
         instructions: """
         1. Press and cube tofu.
@@ -317,10 +347,10 @@ private let coreRecipeSeeds: [RecipeSeed] = [
         2 carrots, finely diced
         2 celery stalks, finely diced
         1 package mushrooms, finely chopped
-        Italian seasoning
-        Garlic
-        Crushed red pepper
-        Chickpea pasta or whole-wheat pasta for serving
+        2 Tbsp Italian seasoning
+        4 garlic cloves, minced
+        1/2 tsp crushed red pepper
+        12 oz chickpea pasta or whole-wheat pasta for serving
         """,
         instructions: """
         1. Brown turkey.
@@ -333,12 +363,12 @@ private let coreRecipeSeeds: [RecipeSeed] = [
         notes: "Good protein/fiber freezer meal. Pasta can be cooked fresh or stored separately.",
         isVegetarian: false
     ),
-    .init(name: "Brown Rice", recipeType: .side, cubeSize: .oneCup, cubeYield: 6, servings: 6, calories: 215, protein: 5, carbs: 45, fat: 2, saturatedFat: 0, fiber: 3.5, sodium: 0, ingredients: "Cooked brown rice", instructions: "Cook, cool slightly, and portion into 1-cup cubes.", notes: "Quality carb side.", isVegetarian: true),
-    .init(name: "Quinoa", recipeType: .side, cubeSize: .oneCup, cubeYield: 6, servings: 6, calories: 220, protein: 8, carbs: 40, fat: 4, saturatedFat: 0, fiber: 5, sodium: 0, ingredients: "Cooked quinoa", instructions: "Cook, cool slightly, and portion into 1-cup cubes.", notes: "Quality carb and some protein.", isVegetarian: true),
-    .init(name: "Sweet Potato Mash", recipeType: .side, cubeSize: .oneCup, cubeYield: 6, servings: 6, calories: 180, protein: 4, carbs: 41, fat: 0, saturatedFat: 0, fiber: 6, sodium: 0, ingredients: "Sweet potatoes", instructions: "Roast or steam, mash, and portion into 1-cup cubes.", notes: "Freezer-friendly carb side.", isVegetarian: true),
-    .init(name: "Edamame Add-On", recipeType: .side, cubeSize: .oneCup, cubeYield: 4, servings: 4, calories: 190, protein: 18, carbs: 15, fat: 8, saturatedFat: 1, fiber: 8, sodium: 0, ingredients: "Shelled edamame", instructions: "Steam, cool, and portion into 1-cup cubes.", notes: "High-protein vegetarian add-on.", isVegetarian: true),
-    .init(name: "Salsa Verde Sauce", recipeType: .sauce, cubeSize: .halfCup, cubeYield: 8, servings: 8, calories: 40, protein: 1, carbs: 8, fat: 0, saturatedFat: 0, fiber: 1, sodium: 0, ingredients: "Salsa verde", instructions: "Portion into 1/2-cup cubes.", notes: "Easy sauce or stew starter.", isVegetarian: true),
-    .init(name: "Lemon Dijon Dressing Concentrate", recipeType: .sauce, cubeSize: .twoTbsp, cubeYield: 12, servings: 12, calories: 80, protein: 0, carbs: 2, fat: 8, saturatedFat: 1, fiber: 0, sodium: 0, ingredients: "Lemon juice, Dijon mustard, olive oil, garlic, herbs", instructions: "Blend or whisk and portion into 2 Tbsp cubes.", notes: "Use as a fresh salad booster.", isVegetarian: true)
+    .init(name: "Brown Rice", recipeType: .side, cubeSize: .oneCup, cubeYield: 6, servings: 6, calories: 215, protein: 5, carbs: 45, fat: 2, saturatedFat: 0, fiber: 3.5, sodium: 0, ingredients: "2 cups dry brown rice plus 4 cups water", instructions: "Cook rice, cool slightly, and portion into six 1-cup cubes.", notes: "Quality carb side.", isVegetarian: true),
+    .init(name: "Quinoa", recipeType: .side, cubeSize: .oneCup, cubeYield: 6, servings: 6, calories: 220, protein: 8, carbs: 40, fat: 4, saturatedFat: 0, fiber: 5, sodium: 0, ingredients: "2 cups dry quinoa plus 4 cups water or broth", instructions: "Cook quinoa, cool slightly, and portion into six 1-cup cubes.", notes: "Quality carb and some protein.", isVegetarian: true),
+    .init(name: "Sweet Potato Mash", recipeType: .side, cubeSize: .oneCup, cubeYield: 6, servings: 6, calories: 180, protein: 4, carbs: 41, fat: 0, saturatedFat: 0, fiber: 6, sodium: 0, ingredients: "3 lb sweet potatoes plus 1/2 cup low-sodium broth", instructions: "Roast or steam sweet potatoes, mash with broth, and portion into six 1-cup cubes.", notes: "Freezer-friendly carb side.", isVegetarian: true),
+    .init(name: "Edamame Add-On", recipeType: .side, cubeSize: .oneCup, cubeYield: 4, servings: 4, calories: 190, protein: 18, carbs: 15, fat: 8, saturatedFat: 1, fiber: 8, sodium: 0, ingredients: "4 cups shelled edamame", instructions: "Steam edamame, cool, and portion into four 1-cup cubes.", notes: "High-protein vegetarian add-on.", isVegetarian: true),
+    .init(name: "Salsa Verde Sauce", recipeType: .sauce, cubeSize: .halfCup, cubeYield: 8, servings: 8, calories: 40, protein: 1, carbs: 8, fat: 0, saturatedFat: 0, fiber: 1, sodium: 0, ingredients: "4 cups salsa verde", instructions: "Portion salsa verde into eight 1/2-cup cubes.", notes: "Easy sauce or stew starter.", isVegetarian: true),
+    .init(name: "Lemon Dijon Dressing Concentrate", recipeType: .sauce, cubeSize: .twoTbsp, cubeYield: 12, servings: 12, calories: 80, protein: 0, carbs: 2, fat: 8, saturatedFat: 1, fiber: 0, sodium: 0, ingredients: "1/2 cup lemon juice, 1/4 cup Dijon mustard, 3/4 cup olive oil, 3 garlic cloves, 2 Tbsp chopped herbs", instructions: "Blend or whisk ingredients and portion into twelve 2 Tbsp cubes.", notes: "Use as a fresh salad booster.", isVegetarian: true)
 ]
 
 private let recipeSeeds: [RecipeSeed] = coreRecipeSeeds + lowEffortBowlSeeds + healthySnackSeeds
@@ -375,18 +405,19 @@ private func bowlSeed(
         fiber: fiber,
         sodium: 0,
         ingredients: """
-        Base: \(base)
-        Protein: \(proteinSource)
-        Vegetables: \(vegetables)
-        Sauce or seasoning: \(sauce)
-        Fresh finish: \(fresh)
+        Base: 4 cups cooked \(base), about 1 1/2 cups dry grain if cooking from scratch
+        Protein: 2 lb cooked lean protein or 4 cups plant protein: \(proteinSource)
+        Vegetables: 6 cups \(vegetables)
+        Sauce or seasoning: 1 1/2 cups sauce plus 2 Tbsp seasoning: \(sauce)
+        Fresh finish: 2 cups \(fresh)
         """,
         instructions: """
-        1. Cook the base, or use a prepared freezer-friendly grain.
-        2. Warm the protein, vegetables, and sauce in one pot or skillet until thick.
-        3. Fold in the base, taste, and adjust seasoning.
-        4. Portion into six 2-cup Souper Cube portions.
-        5. Freeze, reheat, and add the fresh finish after warming.
+        1. Cook 1 1/2 cups dry grain, or measure 4 cups cooked prepared base.
+        2. Warm 2 lb cooked lean protein or 4 cups plant protein with 6 cups vegetables in one pot or skillet.
+        3. Stir in 1 1/2 cups sauce and 2 Tbsp seasoning, then simmer until the mixture is thick.
+        4. Fold in the cooked base, taste, and adjust seasoning.
+        5. Portion into six 2-cup Souper Cube portions.
+        6. Freeze, reheat, and add about 1/3 cup fresh finish per bowl after warming.
         """,
         notes: """
         Theme: \(theme)
@@ -444,11 +475,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Greek Yogurt Berry Crunch",
         summary: "High-protein yogurt with berries and a little crunch.",
         ingredients: """
-        Nonfat Greek yogurt
-        Berries
-        High-fiber cereal or oats
-        Chia seeds
-        Cinnamon
+        1 cup nonfat Greek yogurt
+        1/2 cup berries
+        1/4 cup high-fiber cereal or oats
+        1 Tbsp chia seeds
+        1/4 tsp cinnamon
         """,
         instructions: "Layer yogurt, berries, cereal or oats, chia, and cinnamon.",
         calories: 250,
@@ -462,9 +493,9 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Apple Almond Butter Plate",
         summary: "Apple slices with measured almond butter and cinnamon.",
         ingredients: """
-        Apples
-        Almond butter
-        Cinnamon
+        1 medium apple
+        1 Tbsp almond butter
+        1/4 tsp cinnamon
         """,
         instructions: "Slice apple and serve with one measured spoon of almond butter.",
         calories: 230,
@@ -478,9 +509,9 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Cottage Cheese Pineapple Cup",
         summary: "Lean protein with fruit for a fast sweet snack.",
         ingredients: """
-        Low-fat cottage cheese
-        Pineapple
-        Ground flaxseed
+        1 cup low-fat cottage cheese
+        1/2 cup pineapple
+        1 Tbsp ground flaxseed
         """,
         instructions: "Spoon cottage cheese into a bowl and top with pineapple and flaxseed.",
         calories: 240,
@@ -494,11 +525,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Hummus Veggie Box",
         summary: "Fiber-rich vegetables with hummus for crunch.",
         ingredients: """
-        Hummus
-        Baby carrots
-        Cucumber
-        Bell peppers
-        Cherry tomatoes
+        1/4 cup hummus
+        1 cup baby carrots
+        1/2 cup cucumber slices
+        1/2 cup bell pepper strips
+        1/2 cup cherry tomatoes
         """,
         instructions: "Pack hummus with sliced vegetables.",
         calories: 220,
@@ -512,10 +543,10 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Edamame Sea Salt Cup",
         summary: "Simple high-protein edamame with lemon.",
         ingredients: """
-        Shelled edamame
-        Lemon
-        Sea salt
-        Red pepper flakes
+        1 cup shelled edamame
+        1 lemon wedge
+        1/8 tsp sea salt
+        Pinch red pepper flakes
         """,
         instructions: "Steam edamame, season lightly, and chill or eat warm.",
         calories: 190,
@@ -529,10 +560,10 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Turkey Cucumber Rollups",
         summary: "Lean turkey wrapped with cucumber and mustard.",
         ingredients: """
-        Sliced turkey breast
-        Cucumber
-        Mustard
-        Whole-grain crackers
+        4 oz sliced turkey breast
+        1/2 cup cucumber strips
+        1 Tbsp mustard
+        6 whole-grain crackers
         """,
         instructions: "Roll turkey around cucumber strips and serve with crackers.",
         calories: 210,
@@ -547,11 +578,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Tuna Avocado Rice Cakes",
         summary: "Lean tuna, avocado, and rice cakes for a filling snack.",
         ingredients: """
-        Tuna packet
-        Avocado
-        Brown rice cakes
-        Lemon
-        Black pepper
+        1 tuna packet, about 2.6 oz
+        1/4 avocado
+        2 brown rice cakes
+        1 tsp lemon juice
+        Black pepper to taste
         """,
         instructions: "Mash tuna with avocado and lemon, then spread over rice cakes.",
         calories: 260,
@@ -566,11 +597,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Protein Oats Cup",
         summary: "No-cook oats with protein and berries.",
         ingredients: """
-        Oats
-        Protein powder
-        Nonfat Greek yogurt
-        Berries
-        Chia seeds
+        1/2 cup oats
+        1 scoop protein powder
+        1/2 cup nonfat Greek yogurt
+        1/2 cup berries
+        1 Tbsp chia seeds
         """,
         instructions: "Stir ingredients together and chill.",
         calories: 310,
@@ -584,11 +615,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Chia Berry Pudding",
         summary: "Make-ahead chia pudding with berries.",
         ingredients: """
-        Chia seeds
-        Unsweetened almond milk
-        Berries
-        Vanilla
-        Cinnamon
+        2 Tbsp chia seeds
+        1/2 cup unsweetened almond milk
+        1/2 cup berries
+        1/4 tsp vanilla
+        1/4 tsp cinnamon
         """,
         instructions: "Stir chia with almond milk, vanilla, and cinnamon. Chill and top with berries.",
         calories: 220,
@@ -602,9 +633,9 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Egg Fruit Plate",
         summary: "Boiled eggs with fruit for a portable snack.",
         ingredients: """
-        Hard-boiled eggs
-        Grapes or berries
-        Baby carrots
+        2 hard-boiled eggs
+        1/2 cup grapes or berries
+        1 cup baby carrots
         """,
         instructions: "Pack eggs with fruit and carrots.",
         calories: 240,
@@ -618,11 +649,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Roasted Chickpea Crunch",
         summary: "Crunchy chickpeas with smoky seasoning.",
         ingredients: """
-        Chickpeas
+        1 cup chickpeas, drained and rinsed
         Olive oil spray
-        Smoked paprika
-        Garlic powder
-        Lemon
+        1/2 tsp smoked paprika
+        1/4 tsp garlic powder
+        1 lemon wedge
         """,
         instructions: "Season chickpeas and roast or air fry until crisp.",
         calories: 210,
@@ -636,11 +667,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Salsa Cottage Cheese Bowl",
         summary: "Cottage cheese with salsa and vegetables.",
         ingredients: """
-        Low-fat cottage cheese
-        Salsa
-        Bell peppers
-        Cucumber
-        Cilantro
+        1 cup low-fat cottage cheese
+        1/4 cup salsa
+        1/2 cup bell pepper strips
+        1/2 cup cucumber slices
+        1 Tbsp chopped cilantro
         """,
         instructions: "Top cottage cheese with salsa, chopped vegetables, and cilantro.",
         calories: 210,
@@ -654,11 +685,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Smoked Salmon Cucumber Stack",
         summary: "Salmon, cucumber, and yogurt-dill topping.",
         ingredients: """
-        Smoked salmon
-        Cucumber
-        Nonfat Greek yogurt
-        Dill
-        Lemon
+        2 oz smoked salmon
+        1 cup cucumber rounds
+        2 Tbsp nonfat Greek yogurt
+        1 tsp chopped dill
+        1 lemon wedge
         """,
         instructions: "Top cucumber rounds with salmon, yogurt, dill, and lemon.",
         calories: 190,
@@ -673,10 +704,10 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Banana Peanut Yogurt Bowl",
         summary: "Greek yogurt, banana, and peanut powder.",
         ingredients: """
-        Nonfat Greek yogurt
-        Banana
-        Peanut powder
-        Cinnamon
+        1 cup nonfat Greek yogurt
+        1 small banana
+        2 Tbsp peanut powder
+        1/4 tsp cinnamon
         """,
         instructions: "Top yogurt with sliced banana, peanut powder, and cinnamon.",
         calories: 270,
@@ -690,11 +721,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Black Bean Dip Veggie Cup",
         summary: "Quick black bean dip with crunchy vegetables.",
         ingredients: """
-        Black beans
-        Salsa
-        Lime
-        Baby carrots
-        Bell peppers
+        1/2 cup black beans, drained and rinsed
+        1/4 cup salsa
+        1 tsp lime juice
+        1 cup baby carrots
+        1/2 cup bell pepper strips
         """,
         instructions: "Mash beans with salsa and lime, then serve with vegetables.",
         calories: 230,
@@ -708,10 +739,10 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Trail Mix Portion Pack",
         summary: "Measured nuts, pumpkin seeds, and fruit.",
         ingredients: """
-        Almonds
-        Pumpkin seeds
-        Unsweetened dried fruit
-        High-fiber cereal
+        1 Tbsp almonds
+        1 Tbsp pumpkin seeds
+        2 Tbsp unsweetened dried fruit
+        1/4 cup high-fiber cereal
         """,
         instructions: "Portion into small snack bags or containers.",
         calories: 240,
@@ -725,11 +756,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Tofu Chocolate Pudding",
         summary: "Silken tofu blended into a higher-protein pudding.",
         ingredients: """
-        Silken tofu
-        Cocoa powder
-        Maple syrup
-        Vanilla
-        Berries
+        1/2 cup silken tofu
+        1 Tbsp cocoa powder
+        1 tsp maple syrup
+        1/4 tsp vanilla
+        1/2 cup berries
         """,
         instructions: "Blend tofu, cocoa, maple, and vanilla. Chill and top with berries.",
         calories: 240,
@@ -743,11 +774,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Caprese Cottage Cheese Cup",
         summary: "Cottage cheese, tomatoes, basil, and balsamic.",
         ingredients: """
-        Low-fat cottage cheese
-        Cherry tomatoes
-        Basil
-        Balsamic vinegar
-        Whole-grain crackers
+        1 cup low-fat cottage cheese
+        1/2 cup cherry tomatoes
+        1 Tbsp chopped basil
+        1 tsp balsamic vinegar
+        6 whole-grain crackers
         """,
         instructions: "Top cottage cheese with tomatoes, basil, and balsamic. Serve with crackers.",
         calories: 250,
@@ -761,11 +792,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Lentil Cucumber Salad Cup",
         summary: "Ready lentils with cucumber and lemon.",
         ingredients: """
-        Cooked lentils
-        Cucumber
-        Lemon
-        Parsley
-        Olive oil
+        1/2 cup cooked lentils
+        1/2 cup cucumber slices
+        1 tsp lemon juice
+        1 Tbsp chopped parsley
+        1 tsp olive oil
         """,
         instructions: "Toss lentils with cucumber, lemon, parsley, and a little olive oil.",
         calories: 230,
@@ -779,11 +810,11 @@ private let healthySnackSeeds: [RecipeSeed] = [
         "Protein Smoothie Pack",
         summary: "Frozen smoothie ingredients ready to blend.",
         ingredients: """
-        Protein powder
-        Frozen berries
-        Spinach
-        Unsweetened almond milk
-        Ground flaxseed
+        1 scoop protein powder
+        1 cup frozen berries
+        1 cup spinach
+        1 cup unsweetened almond milk
+        1 Tbsp ground flaxseed
         """,
         instructions: "Blend ingredients with almond milk.",
         calories: 280,

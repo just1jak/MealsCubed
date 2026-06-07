@@ -26,9 +26,7 @@ struct MealPlanView: View {
     }
 
     private var shouldLoadCatalog: Bool {
-        recipes.isEmpty ||
-            recipes.filter(\.isBowlIdea).count < StarterData.bowlCatalogTarget ||
-            recipes.filter { $0.recipeType == .snack }.count < StarterData.snackCatalogTarget
+        StarterData.recipesNeedRefresh(recipes)
     }
 
     var body: some View {

@@ -27,14 +27,6 @@ struct DashboardView: View {
         mealPlanEntries.first { Calendar.current.isDateInToday($0.date) }
     }
 
-    private var bowlRecipes: [Recipe] {
-        recipes.filter(\.isBowlIdea)
-    }
-
-    private var snackRecipes: [Recipe] {
-        recipes.filter { $0.recipeType == .snack }
-    }
-
     private var activeFreezerItems: [FreezerItem] {
         freezerItems.filter { !$0.isArchived }
     }
@@ -45,9 +37,7 @@ struct DashboardView: View {
 
     private var shouldLoadStarterData: Bool {
         foods.isEmpty ||
-            recipes.isEmpty ||
-            bowlRecipes.count < StarterData.bowlCatalogTarget ||
-            snackRecipes.count < StarterData.snackCatalogTarget
+            StarterData.recipesNeedRefresh(recipes)
     }
 
     private var plannedCubes: Int {
@@ -755,29 +745,35 @@ private struct DashboardActionCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: symbolName)
-                    .font(.system(size: 35, weight: .light))
-                    .foregroundStyle(Color.controlCream.opacity(0.72))
-                    .frame(width: 44)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
+                    Image(systemName: symbolName)
+                        .font(.system(size: 31, weight: .light))
+                        .foregroundStyle(Color.controlCream.opacity(0.72))
+                        .frame(width: 38, height: 38)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.custom("AvenirNextCondensed-Heavy", size: 25))
-                        .foregroundStyle(Color.controlCream)
-                    Text(subtitle)
-                        .font(.caption.weight(.semibold))
+                    Spacer(minLength: 8)
+
+                    Image(systemName: "chevron.right.circle")
+                        .font(.title2.weight(.light))
                         .foregroundStyle(Color.controlCream.opacity(0.9))
                 }
 
-                Spacer()
+                Text(title.replacingOccurrences(of: " ", with: "\n"))
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 29))
+                    .foregroundStyle(Color.controlCream)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.82)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                Image(systemName: "chevron.right.circle")
-                    .font(.title.weight(.light))
+                Text(subtitle)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(Color.controlCream.opacity(0.9))
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(14)
-            .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 146, alignment: .topLeading)
             .background(color, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)

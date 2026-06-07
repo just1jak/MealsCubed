@@ -29,67 +29,66 @@ struct MealPlanView: View {
         StarterData.recipesNeedRefresh(recipes)
     }
 
+    private var upcomingEntryCount: Int {
+        mealPlanEntries.filter { !$0.isDone }.count
+    }
+
+    private var completedEntryCount: Int {
+        mealPlanEntries.filter(\.isDone).count
+    }
+
     var body: some View {
-        List {
-            Section {
-                Button {
-                    activeSheet = .buildWeek
-                } label: {
-                    Label("Choose Meals From Catalog", systemImage: "checklist")
-                }
+        ControlRoomScreen {
+            ControlRoomHeader(
+                eyebrow: "Week Builder",
+                title: "Meal Plan",
+                subtitle: "Pick catalog meals and snacks for the coming week, then turn the plan into a shopping cart.",
+                symbolName: "calendar",
+                accent: .controlPaprika
+            )
 
-                Button {
-                    activeSheet = .add
-                } label: {
-                    Label("Custom Day", systemImage: "square.and.pencil")
-                }
+            mealPlanStats
+            plannerActions
+            plannerFilters
 
-                Button {
-                    activeSheet = .shoppingCart
-                } label: {
-                    Label("Shopping Cart", systemImage: "cart.fill")
-                }
+            ControlRoomSectionHeader(
+                title: "Plans",
+                detail: "\(visibleEntries.count) visible",
+                tint: .controlPaprika
+            )
 
-                Toggle("Show completed", isOn: $showCompleted)
-
-                if let catalogLoadError {
-                    Text(catalogLoadError)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                }
-            } header: {
-                Text("Catalog Planner")
-            } footer: {
-                Text("The catalog stays ready to go. Your meal plan is just the meals you choose for the coming week or weeks.")
-            }
-
-            Section("Plans") {
-                if visibleEntries.isEmpty {
+            if visibleEntries.isEmpty {
+                ControlRoomPanel(tint: .controlPaprika) {
                     EmptyStateView(title: "No Meal Plans", message: "Choose meals from the catalog to fill the coming week.", systemImage: "calendar")
-                        .listRowBackground(Color.clear)
-                } else {
-                    ForEach(visibleEntries) { entry in
-                        MealPlanRow(
-                            entry: entry,
-                            toggleDone: {
-                                entry.isDone.toggle()
-                                try? modelContext.save()
-                            },
-                            edit: {
-                                activeSheet = .edit(entry)
-                            }
-                        )
-                    }
+                        .foregroundStyle(Color.controlCream)
+                }
+            } else {
+                ForEach(visibleEntries) { entry in
+                    MealPlanRow(
+                        entry: entry,
+                        toggleDone: {
+                            entry.isDone.toggle()
+                            try? modelContext.save()
+                        },
+                        edit: {
+                            activeSheet = .edit(entry)
+                        }
+                    )
                 }
             }
         }
         .navigationTitle("Meal Plan")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbarBackground(Color.controlInk, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     activeSheet = .buildWeek
                 } label: {
                     Image(systemName: "checklist")
+                        .foregroundStyle(Color.controlLime)
                 }
                 .accessibilityLabel("Choose Meals From Catalog")
 
@@ -97,6 +96,7 @@ struct MealPlanView: View {
                     activeSheet = .shoppingCart
                 } label: {
                     Image(systemName: "cart.fill")
+                        .foregroundStyle(Color.controlLime)
                 }
                 .accessibilityLabel("Shopping Cart")
 
@@ -104,6 +104,7 @@ struct MealPlanView: View {
                     activeSheet = .add
                 } label: {
                     Image(systemName: "plus")
+                        .foregroundStyle(Color.controlLime)
                 }
                 .accessibilityLabel("Custom Day")
             }
@@ -127,6 +128,79 @@ struct MealPlanView: View {
         }
     }
 
+    private var mealPlanStats: some View {
+        HStack(spacing: 10) {
+            ControlRoomStatTile(value: "\(upcomingEntryCount)", title: "upcoming", symbolName: "calendar", tint: .controlLime)
+            ControlRoomStatTile(value: "\(plannableRecipes.count)", title: "catalog items", symbolName: "book.closed.fill", tint: .controlPaprika)
+            ControlRoomStatTile(value: "\(completedEntryCount)", title: "complete", symbolName: "checkmark.circle.fill", tint: .controlSteel)
+        }
+    }
+
+    private var plannerActions: some View {
+        VStack(spacing: 10) {
+            ControlRoomActionButton(
+                title: "Choose Meals From Catalog",
+                subtitle: "Fill one or more weeks from ready-to-go bowl ideas and snacks.",
+                symbolName: "checklist",
+                tint: .controlLime
+            ) {
+                activeSheet = .buildWeek
+            }
+
+            ControlRoomActionButton(
+                title: "Shopping Cart",
+                subtitle: "Turn upcoming catalog picks into a grocery list.",
+                symbolName: "cart.fill",
+                tint: .controlPaprika
+            ) {
+                activeSheet = .shoppingCart
+            }
+
+            ControlRoomActionButton(
+                title: "Custom Day",
+                subtitle: "Add a one-off lunch, dinner, side, or snack plan.",
+                symbolName: "square.and.pencil",
+                tint: Color(red: 0.0, green: 0.76, blue: 0.70)
+            ) {
+                activeSheet = .add
+            }
+        }
+    }
+
+    private var plannerFilters: some View {
+        ControlRoomPanel(tint: .controlLine) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    Button {
+                        showCompleted.toggle()
+                    } label: {
+                        ControlRoomPill(
+                            text: showCompleted ? "Completed On" : "Upcoming Only",
+                            symbolName: showCompleted ? "checkmark.circle.fill" : "calendar",
+                            tint: showCompleted ? .controlSteel : .controlLime,
+                            isActive: showCompleted
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer(minLength: 0)
+                }
+
+                Text("The catalog stays ready to go. Your meal plan is only the meals you choose for the coming week or weeks.")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.controlCream.opacity(0.58))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let catalogLoadError {
+                    Text(catalogLoadError)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color.controlPaprika)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
     private func autoLoadCatalogIfNeeded() {
         guard !didAutoLoadCatalog, shouldLoadCatalog else { return }
         didAutoLoadCatalog = true
@@ -144,60 +218,128 @@ private struct MealPlanRow: View {
     let edit: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center) {
-                Button {
-                    toggleDone()
-                } label: {
-                    Image(systemName: entry.isDone ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundStyle(entry.isDone ? Color.mealAccent : Color.secondary)
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel(entry.isDone ? "Mark not done" : "Mark done")
+        ControlRoomPanel(tint: entry.isDone ? .controlSteel : .controlPaprika, padding: 11) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    Button {
+                        toggleDone()
+                    } label: {
+                        Image(systemName: entry.isDone ? "checkmark.circle.fill" : "circle")
+                            .font(.title2.weight(.bold))
+                            .foregroundStyle(entry.isDone ? Color.controlLime : Color.controlCream.opacity(0.55))
+                            .frame(width: 34, height: 34)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(entry.isDone ? "Mark not done" : "Mark done")
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(entry.date.shortMealDate)
-                        .font(.headline)
-                    Text(entry.dinnerName.isEmpty ? "Dinner not set" : entry.dinnerName)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(entry.date.shortMealDate.uppercased())
+                            .font(.custom("AvenirNextCondensed-Heavy", size: 20))
+                            .foregroundStyle(entry.isDone ? Color.controlSteel : Color.controlCream)
+                            .lineLimit(1)
+                        Text(entry.dinnerName.isEmpty ? "Dinner not set" : entry.dinnerName)
+                            .font(.headline.weight(.black))
+                            .foregroundStyle(Color.controlCream)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Button {
+                        edit()
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(Color.controlCream.opacity(0.8))
+                            .frame(width: 34, height: 34)
+                            .background(Color.controlPanelSoft, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Edit meal plan")
                 }
 
-                Spacer()
-
-                Button {
-                    edit()
-                } label: {
-                    Image(systemName: "pencil")
+                VStack(alignment: .leading, spacing: 8) {
+                    mealText("Lunch", entry.lunchName)
+                    mealText("Side", entry.sideName)
+                    mealText("Snacks", [entry.snackOne, entry.snackTwo].filter { !$0.trimmed.isEmpty }.joined(separator: ", "))
                 }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Edit meal plan")
+
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 135), spacing: 9)], spacing: 9) {
+                    PlanTargetMeter(title: "Calories", value: entry.plannedCalories, target: HealthTargets.calories, unit: "")
+                    PlanTargetMeter(title: "Protein", value: entry.plannedProtein, target: HealthTargets.protein, unit: "g")
+                    PlanTargetMeter(title: "Fiber", value: entry.plannedFiber, target: HealthTargets.fiber, unit: "g")
+                    PlanTargetMeter(title: "Sat Fat", value: entry.plannedSaturatedFat, target: HealthTargets.saturatedFat, unit: "g", isMaximum: true)
+                }
             }
-
-            VStack(alignment: .leading, spacing: 6) {
-                mealText("Lunch", entry.lunchName)
-                mealText("Side", entry.sideName)
-                mealText("Snacks", [entry.snackOne, entry.snackTwo].filter { !$0.trimmed.isEmpty }.joined(separator: ", "))
-            }
-
-            TargetProgressRow(title: "Calories", value: entry.plannedCalories, target: HealthTargets.calories, unit: "")
-            TargetProgressRow(title: "Protein", value: entry.plannedProtein, target: HealthTargets.protein, unit: "g")
-            TargetProgressRow(title: "Fiber", value: entry.plannedFiber, target: HealthTargets.fiber, unit: "g")
-            TargetProgressRow(title: "Saturated Fat", value: entry.plannedSaturatedFat, target: HealthTargets.saturatedFat, unit: "g", isMaximum: true)
         }
-        .padding(.vertical, 8)
     }
 
     private func mealText(_ title: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .frame(width: 48, alignment: .leading)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title.uppercased())
+                .font(.caption.weight(.black))
+                .foregroundStyle(Color.controlPaprika)
+                .frame(width: 54, alignment: .leading)
             Text(value.isEmpty ? "Not set" : value)
-                .font(.caption)
-                .foregroundStyle(value.isEmpty ? .secondary : .primary)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(value.isEmpty ? Color.controlCream.opacity(0.42) : Color.controlCream.opacity(0.72))
+                .fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+private struct PlanTargetMeter: View {
+    let title: String
+    let value: Double
+    let target: Double
+    let unit: String
+    var isMaximum: Bool = false
+
+    private var progress: Double {
+        guard target > 0 else { return 0 }
+        return min(value / target, 1.0)
+    }
+
+    private var tint: Color {
+        if isMaximum {
+            return value <= target ? .controlLime : .controlPaprika
+        }
+        return value >= target ? .controlLime : Color(red: 0.0, green: 0.76, blue: 0.70)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(value.compactString)\(unit)")
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 22))
+                    .foregroundStyle(Color.controlCream)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+                Spacer(minLength: 4)
+                Text("\(target.compactString)\(unit)")
+                    .font(.caption2.weight(.black))
+                    .foregroundStyle(Color.controlCream.opacity(0.45))
+                    .lineLimit(1)
+            }
+
+            Text(title.uppercased())
+                .font(.caption2.weight(.black))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.controlCream.opacity(0.18))
+                    Capsule()
+                        .fill(tint)
+                        .frame(width: max(6, proxy.size.width * CGFloat(progress)))
+                }
+            }
+            .frame(height: 5)
+        }
+        .padding(9)
+        .background(Color.controlPanelSoft, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
 

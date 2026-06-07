@@ -55,6 +55,230 @@ struct BundleImage: View {
     }
 }
 
+struct ControlRoomScreen<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 16) {
+                content
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 110)
+        }
+        .background(Color.controlInk.ignoresSafeArea())
+    }
+}
+
+struct ControlRoomHeader: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let symbolName: String
+    var accent: Color = .controlLime
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Label(eyebrow.uppercased(), systemImage: symbolName)
+                .font(.caption.weight(.black))
+                .foregroundStyle(accent)
+
+            Text(title.uppercased())
+                .font(.custom("AvenirNextCondensed-Heavy", size: 36))
+                .foregroundStyle(Color.controlCream)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+
+            Text(subtitle)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Color.controlCream.opacity(0.7))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+struct ControlRoomPanel<Content: View>: View {
+    var tint: Color = .controlLine
+    var padding: CGFloat = 12
+    let content: Content
+
+    init(tint: Color = .controlLine, padding: CGFloat = 12, @ViewBuilder content: () -> Content) {
+        self.tint = tint
+        self.padding = padding
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .padding(padding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.96),
+                        Color.controlPanel.opacity(0.98),
+                        Color.black.opacity(0.93)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(tint.opacity(0.62), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.45), radius: 10, x: 0, y: 6)
+    }
+}
+
+struct ControlRoomSectionHeader: View {
+    let title: String
+    var detail: String?
+    var tint: Color = .controlCream
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title.uppercased())
+                .font(.custom("AvenirNextCondensed-Heavy", size: 22))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Spacer()
+            if let detail {
+                Text(detail.uppercased())
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 13))
+                    .foregroundStyle(Color.controlCream.opacity(0.58))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+    }
+}
+
+struct ControlRoomStatTile: View {
+    let value: String
+    let title: String
+    var symbolName: String?
+    var tint: Color = .controlLime
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 7) {
+                if let symbolName {
+                    Image(systemName: symbolName)
+                        .font(.caption.weight(.black))
+                }
+                Text(value)
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 24))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .foregroundStyle(tint)
+
+            Text(title.uppercased())
+                .font(.caption2.weight(.black))
+                .foregroundStyle(Color.controlCream.opacity(0.56))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.controlPanelSoft, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(tint.opacity(0.42), lineWidth: 1)
+        )
+    }
+}
+
+struct ControlRoomActionButton: View {
+    let title: String
+    let subtitle: String
+    let symbolName: String
+    var tint: Color = .controlLime
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: symbolName)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(tint)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title.uppercased())
+                        .font(.custom("AvenirNextCondensed-Heavy", size: 17))
+                        .foregroundStyle(Color.controlCream)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Text(subtitle)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.controlCream.opacity(0.62))
+                        .lineLimit(2)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right.circle")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(tint.opacity(0.9))
+            }
+            .padding(12)
+            .background(
+                LinearGradient(
+                    colors: [
+                        tint.opacity(0.22),
+                        Color.controlPanelSoft.opacity(0.96)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(tint.opacity(0.45), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct ControlRoomPill: View {
+    let text: String
+    var symbolName: String?
+    var tint: Color = .controlLime
+    var isActive = false
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let symbolName {
+                Image(systemName: symbolName)
+                    .font(.caption2.weight(.black))
+            }
+            Text(text.uppercased())
+                .font(.caption.weight(.black))
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .foregroundStyle(isActive ? Color.controlInk : tint)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 6)
+        .background(isActive ? tint : tint.opacity(0.14), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(tint.opacity(0.5), lineWidth: 1)
+        )
+    }
+}
+
 struct AppCard<Content: View>: View {
     let content: Content
 

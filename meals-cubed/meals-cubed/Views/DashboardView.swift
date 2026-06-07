@@ -477,21 +477,24 @@ private struct DailyGauge: View {
     var body: some View {
         ZStack {
             Circle()
-                .trim(from: 0.12, to: 0.88)
-                .stroke(Color.controlLime.opacity(0.22), style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                .trim(from: 0.18, to: 0.82)
+                .stroke(Color.controlLime.opacity(0.22), style: StrokeStyle(lineWidth: 6, lineCap: .round))
                 .rotationEffect(.degrees(90))
             Circle()
-                .trim(from: 0.12, to: 0.72)
-                .stroke(Color.controlLime, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                .trim(from: 0.18, to: 0.67)
+                .stroke(Color.controlLime, style: StrokeStyle(lineWidth: 6, lineCap: .round))
                 .rotationEffect(.degrees(90))
-            VStack(spacing: 0) {
+            VStack(spacing: -2) {
                 Text("\(percent)%")
-                    .font(.custom("AvenirNextCondensed-Heavy", size: 32))
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 31))
                     .foregroundStyle(Color.controlCream)
                 Text("DAILY TARGETS")
-                    .font(.custom("AvenirNextCondensed-Heavy", size: 11))
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 10))
                     .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
+            .offset(y: -1)
         }
     }
 }

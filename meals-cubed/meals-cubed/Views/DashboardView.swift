@@ -260,13 +260,13 @@ struct DashboardView: View {
                     .frame(height: 1)
 
                 HStack(alignment: .top, spacing: 0) {
-                    FreezerConsoleColumn(title: "2 TBSP", count: 8, caption: "cubes", imageName: "cube-trays", fill: 0.62)
+                    FreezerConsoleColumn(title: "2 TBSP", count: 8, caption: "cubes", cubeSize: .twoTbsp, fill: 0.62)
                     ConsoleDivider()
-                    FreezerConsoleColumn(title: "1/2 CUP", count: 7, caption: "cubes", imageName: "cube-trays", fill: 0.72)
+                    FreezerConsoleColumn(title: "1/2 CUP", count: 7, caption: "cubes", cubeSize: .halfCup, fill: 0.72)
                     ConsoleDivider()
-                    FreezerConsoleColumn(title: "1 CUP", count: 9, caption: "cubes", imageName: "cube-trays", fill: 0.88)
+                    FreezerConsoleColumn(title: "1 CUP", count: 9, caption: "cubes", cubeSize: .oneCup, fill: 0.88)
                     ConsoleDivider()
-                    FreezerConsoleColumn(title: "2 CUP", count: 4, caption: "cubes", imageName: "cube-trays", fill: 0.52)
+                    FreezerConsoleColumn(title: "2 CUP", count: 4, caption: "cubes", cubeSize: .twoCup, fill: 0.52)
                 }
             }
         }
@@ -534,7 +534,7 @@ private struct FreezerConsoleColumn: View {
     let title: String
     let count: Int
     let caption: String
-    let imageName: String
+    let cubeSize: CubeSize
     let fill: Double
 
     var body: some View {
@@ -545,15 +545,7 @@ private struct FreezerConsoleColumn: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            BundleImage(name: imageName)
-                .scaledToFill()
-                .frame(width: 56, height: 56)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Color(red: 0.0, green: 0.52, blue: 0.48), lineWidth: 3)
-                )
-                .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 4)
+            SouperCubeTrayThumbnail(cubeSize: cubeSize)
 
             VStack(spacing: -3) {
                 Text("\(count)")
@@ -575,6 +567,232 @@ private struct FreezerConsoleColumn: View {
                 .frame(width: 52)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+private struct SouperCubeTrayThumbnail: View {
+    let cubeSize: CubeSize
+
+    private var layout: SouperCubeTrayLayout {
+        SouperCubeTrayLayout(cubeSize: cubeSize)
+    }
+
+    var body: some View {
+        let trayLayout = layout
+
+        LazyVGrid(
+            columns: Array(repeating: GridItem(.flexible(), spacing: trayLayout.gap), count: trayLayout.columns),
+            spacing: trayLayout.gap
+        ) {
+            ForEach(0..<trayLayout.cellCount, id: \.self) { index in
+                TrayFoodCell(index: index, cubeSize: cubeSize)
+                    .aspectRatio(trayLayout.cellAspectRatio, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: trayLayout.cellCorner, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: trayLayout.cellCorner, style: .continuous)
+                            .stroke(Color.black.opacity(0.45), lineWidth: 1.1)
+                    )
+            }
+        }
+        .padding(trayLayout.padding)
+        .frame(width: trayLayout.size.width, height: trayLayout.size.height)
+        .background(
+            RoundedRectangle(cornerRadius: trayLayout.trayCorner, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.02, green: 0.66, blue: 0.61),
+                            Color(red: 0.0, green: 0.43, blue: 0.40)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: .black.opacity(0.35), radius: 6, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: trayLayout.trayCorner, style: .continuous)
+                .stroke(Color(red: 0.0, green: 0.79, blue: 0.73), lineWidth: 2.5)
+        )
+        .frame(width: 72, height: 64)
+    }
+}
+
+private struct SouperCubeTrayLayout {
+    let cubeSize: CubeSize
+
+    var cellCount: Int {
+        switch cubeSize {
+        case .twoTbsp:
+            12
+        case .halfCup:
+            6
+        case .oneCup:
+            4
+        case .twoCup:
+            2
+        case .none:
+            1
+        }
+    }
+
+    var columns: Int {
+        switch cubeSize {
+        case .twoTbsp:
+            3
+        case .halfCup, .oneCup, .twoCup:
+            2
+        case .none:
+            1
+        }
+    }
+
+    var size: CGSize {
+        switch cubeSize {
+        case .twoTbsp:
+            CGSize(width: 57, height: 60)
+        case .halfCup:
+            CGSize(width: 55, height: 64)
+        case .oneCup:
+            CGSize(width: 58, height: 58)
+        case .twoCup:
+            CGSize(width: 66, height: 48)
+        case .none:
+            CGSize(width: 50, height: 50)
+        }
+    }
+
+    var padding: CGFloat {
+        switch cubeSize {
+        case .twoTbsp:
+            5
+        case .twoCup:
+            6
+        default:
+            6
+        }
+    }
+
+    var gap: CGFloat {
+        cubeSize == .twoTbsp ? 3 : 5
+    }
+
+    var cellCorner: CGFloat {
+        cubeSize == .twoTbsp ? 3.5 : 6
+    }
+
+    var trayCorner: CGFloat {
+        cubeSize == .twoCup ? 9 : 8
+    }
+
+    var cellAspectRatio: CGFloat {
+        cubeSize == .twoCup ? 1.35 : 1
+    }
+}
+
+private struct TrayFoodCell: View {
+    let index: Int
+    let cubeSize: CubeSize
+
+    private var palette: [Color] {
+        switch (index + cubeSize.sortOrder) % 5 {
+        case 0:
+            [
+                Color(red: 0.74, green: 0.35, blue: 0.07),
+                Color(red: 0.96, green: 0.54, blue: 0.14),
+                Color(red: 0.31, green: 0.18, blue: 0.06)
+            ]
+        case 1:
+            [
+                Color(red: 0.35, green: 0.42, blue: 0.13),
+                Color(red: 0.68, green: 0.60, blue: 0.20),
+                Color(red: 0.18, green: 0.21, blue: 0.08)
+            ]
+        case 2:
+            [
+                Color(red: 0.79, green: 0.20, blue: 0.08),
+                Color(red: 0.96, green: 0.42, blue: 0.14),
+                Color(red: 0.39, green: 0.08, blue: 0.04)
+            ]
+        case 3:
+            [
+                Color(red: 0.62, green: 0.45, blue: 0.16),
+                Color(red: 0.88, green: 0.69, blue: 0.28),
+                Color(red: 0.28, green: 0.18, blue: 0.08)
+            ]
+        default:
+            [
+                Color(red: 0.40, green: 0.23, blue: 0.09),
+                Color(red: 0.77, green: 0.44, blue: 0.16),
+                Color(red: 0.16, green: 0.09, blue: 0.04)
+            ]
+        }
+    }
+
+    private var garnishScale: CGFloat {
+        cubeSize == .twoTbsp ? 0.64 : 1
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: palette,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            ForEach(0..<5, id: \.self) { garnishIndex in
+                Circle()
+                    .fill(garnishColor(for: garnishIndex))
+                    .frame(
+                        width: garnishSize(for: garnishIndex),
+                        height: garnishSize(for: garnishIndex)
+                    )
+                    .offset(garnishOffset(for: garnishIndex))
+                    .opacity(garnishIndex == 4 ? 0.72 : 0.9)
+            }
+
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.18),
+                    Color.clear,
+                    Color.black.opacity(0.3)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        .background(Color(red: 0.23, green: 0.12, blue: 0.04))
+    }
+
+    private func garnishColor(for garnishIndex: Int) -> Color {
+        switch (index + garnishIndex) % 4 {
+        case 0:
+            Color(red: 0.91, green: 0.74, blue: 0.42)
+        case 1:
+            Color(red: 0.09, green: 0.55, blue: 0.25)
+        case 2:
+            Color(red: 0.95, green: 0.34, blue: 0.16)
+        default:
+            Color(red: 0.94, green: 0.87, blue: 0.64)
+        }
+    }
+
+    private func garnishSize(for garnishIndex: Int) -> CGFloat {
+        let sizes: [CGFloat] = [5, 3.5, 4.5, 3, 6]
+        return sizes[garnishIndex % sizes.count] * garnishScale
+    }
+
+    private func garnishOffset(for garnishIndex: Int) -> CGSize {
+        let offsets = [
+            CGSize(width: -8, height: -6),
+            CGSize(width: 7, height: -4),
+            CGSize(width: -5, height: 5),
+            CGSize(width: 8, height: 6),
+            CGSize(width: 1, height: 0)
+        ]
+        let offset = offsets[(garnishIndex + index) % offsets.count]
+        return CGSize(width: offset.width * garnishScale, height: offset.height * garnishScale)
     }
 }
 

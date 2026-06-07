@@ -350,7 +350,7 @@ struct CubeTrayDiagram: View {
     private var cellCount: Int {
         switch cubeSize {
         case .twoTbsp:
-            9
+            12
         case .halfCup:
             6
         case .oneCup:
@@ -363,7 +363,15 @@ struct CubeTrayDiagram: View {
     }
 
     private var columns: [GridItem] {
-        let columnCount = cubeSize == .twoCup ? 2 : 3
+        let columnCount: Int
+        switch cubeSize {
+        case .twoTbsp:
+            columnCount = 3
+        case .halfCup, .oneCup, .twoCup:
+            columnCount = 2
+        case .none:
+            columnCount = 1
+        }
         return Array(repeating: GridItem(.flexible(), spacing: compact ? 3 : 5), count: columnCount)
     }
 

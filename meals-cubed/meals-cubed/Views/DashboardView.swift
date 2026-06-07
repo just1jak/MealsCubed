@@ -8,11 +8,20 @@ struct DashboardView: View {
     @Query(sort: \FreezerItem.useByDate) private var freezerItems: [FreezerItem]
     @Query(sort: \MealPlanEntry.date) private var mealPlanEntries: [MealPlanEntry]
 
+    let openFreezer: () -> Void
+    let openMealPlan: () -> Void
+
     @State private var activeSheet: DashboardSheet?
     @State private var message: String?
     @State private var didAutoLoadStarterData = false
 
-    init() {}
+    init(
+        openFreezer: @escaping () -> Void = {},
+        openMealPlan: @escaping () -> Void = {}
+    ) {
+        self.openFreezer = openFreezer
+        self.openMealPlan = openMealPlan
+    }
 
     private var todaysPlan: MealPlanEntry? {
         mealPlanEntries.first { Calendar.current.isDateInToday($0.date) }
@@ -84,7 +93,7 @@ struct DashboardView: View {
                     readyRail
                 }
                 .padding(.horizontal, 10)
-                .padding(.bottom, 86)
+                .padding(.bottom, 156)
             }
             .frame(maxWidth: .infinity)
         }
@@ -117,7 +126,7 @@ struct DashboardView: View {
             ZStack(alignment: .topLeading) {
                 BundleImage(name: "mealcube-hero")
                     .scaledToFill()
-                    .frame(width: proxy.size.width, height: 210)
+                    .frame(width: proxy.size.width, height: 190)
                     .clipped()
                     .overlay(
                         LinearGradient(
@@ -150,14 +159,14 @@ struct DashboardView: View {
                                 .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
 
                             Text("MEALCUBE")
-                                .font(.custom("AvenirNextCondensed-Heavy", size: 50))
+                                .font(.custom("AvenirNextCondensed-Heavy", size: 46))
                                 .foregroundStyle(Color.controlCream)
                                 .shadow(color: .black.opacity(0.65), radius: 3, x: 0, y: 2)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.58)
 
                             Text("TRACKER")
-                                .font(.custom("AvenirNextCondensed-Heavy", size: 26))
+                                .font(.custom("AvenirNextCondensed-Heavy", size: 24))
                                 .tracking(6)
                                 .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
                                 .lineLimit(1)
@@ -189,11 +198,11 @@ struct DashboardView: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.top, 58)
+                .padding(.top, 52)
                 .frame(width: proxy.size.width, alignment: .leading)
             }
         }
-        .frame(height: 210)
+        .frame(height: 190)
     }
 
     private var prepStatusPanel: some View {
@@ -234,37 +243,46 @@ struct DashboardView: View {
     }
 
     private var freezerInventoryConsole: some View {
-        VStack(spacing: 9) {
+        Button {
+            openFreezer()
+        } label: {
+            VStack(spacing: 7) {
                 HStack(alignment: .firstTextBaseline) {
                     Text("FREEZER INVENTORY")
-                    .font(.custom("AvenirNextCondensed-Heavy", size: 22))
-                    .foregroundStyle(Color(red: 0.0, green: 0.56, blue: 0.52))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .layoutPriority(1)
-                Spacer()
-                Text("28 CUBES TOTAL")
+                        .font(.custom("AvenirNextCondensed-Heavy", size: 22))
+                        .foregroundStyle(Color(red: 0.0, green: 0.56, blue: 0.52))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .layoutPriority(1)
+                    Spacer()
+                    HStack(spacing: 5) {
+                        Text("28 CUBES TOTAL")
+                        Image(systemName: "chevron.right")
+                    }
                     .font(.custom("AvenirNextCondensed-Heavy", size: 14))
                     .foregroundStyle(Color(red: 0.0, green: 0.56, blue: 0.52))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
-            }
+                }
 
-            Rectangle()
-                .fill(Color.black.opacity(0.45))
-                .frame(height: 1)
+                Rectangle()
+                    .fill(Color.black.opacity(0.45))
+                    .frame(height: 1)
 
-            HStack(alignment: .top, spacing: 0) {
-                FreezerConsoleColumn(title: "2 TBSP", count: 8, caption: "cubes", imageName: "cube-trays", fill: 0.62)
-                ConsoleDivider()
-                FreezerConsoleColumn(title: "1/2 CUP", count: 7, caption: "cubes", imageName: "cube-trays", fill: 0.72)
-                ConsoleDivider()
-                FreezerConsoleColumn(title: "1 CUP", count: 9, caption: "cubes", imageName: "cube-trays", fill: 0.88)
-                ConsoleDivider()
-                FreezerConsoleColumn(title: "2 CUP", count: 4, caption: "cubes", imageName: "cube-trays", fill: 0.52)
+                HStack(alignment: .top, spacing: 0) {
+                    FreezerConsoleColumn(title: "2 TBSP", count: 8, caption: "cubes", imageName: "cube-trays", fill: 0.62)
+                    ConsoleDivider()
+                    FreezerConsoleColumn(title: "1/2 CUP", count: 7, caption: "cubes", imageName: "cube-trays", fill: 0.72)
+                    ConsoleDivider()
+                    FreezerConsoleColumn(title: "1 CUP", count: 9, caption: "cubes", imageName: "cube-trays", fill: 0.88)
+                    ConsoleDivider()
+                    FreezerConsoleColumn(title: "2 CUP", count: 4, caption: "cubes", imageName: "cube-trays", fill: 0.52)
+                }
             }
         }
-        .padding(12)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open freezer inventory")
+        .padding(10)
         .background(
             LinearGradient(
                 colors: [
@@ -294,10 +312,21 @@ struct DashboardView: View {
                     Text("DAILY NUTRITION TARGETS")
                         .font(.custom("AvenirNextCondensed-Heavy", size: 25))
                         .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.66)
                     Spacer()
-                    Text("DETAILS >")
+                    Button {
+                        activeSheet = .settings
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("DETAILS")
+                            Image(systemName: "chevron.right")
+                        }
                         .font(.custom("AvenirNextCondensed-Heavy", size: 16))
                         .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Open nutrition target details")
                 }
 
                 HStack(spacing: 0) {
@@ -315,29 +344,41 @@ struct DashboardView: View {
 
     private var nextUpGrid: some View {
         HStack(spacing: 8) {
-            MetalBlackPanel {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text("NEXT UP")
-                            .font(.custom("AvenirNextCondensed-Heavy", size: 25))
-                            .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
-                        Text("YOUR BOWL PLAN")
-                            .font(.custom("AvenirNextCondensed-Heavy", size: 16))
-                            .foregroundStyle(Color.controlCream)
-                    }
+            Button {
+                openMealPlan()
+            } label: {
+                MetalBlackPanel {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            Text("NEXT UP")
+                                .font(.custom("AvenirNextCondensed-Heavy", size: 25))
+                                .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
+                            Text("YOUR BOWL PLAN")
+                                .font(.custom("AvenirNextCondensed-Heavy", size: 16))
+                                .foregroundStyle(Color.controlCream)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.76)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.black))
+                                .foregroundStyle(Color.controlCream.opacity(0.68))
+                            Spacer(minLength: 0)
+                        }
 
-                    BowlPlanRow(label: "LUNCH", title: nextLunchTitle, cube: nextLunchCubeLabel, imageName: "bowl-plan")
-                    Divider().overlay(Color.controlCream.opacity(0.22))
-                    BowlPlanRow(label: "DINNER", title: nextDinnerTitle, cube: nextDinnerCubeLabel, imageName: "bowl-plan")
+                        BowlPlanRow(label: "LUNCH", title: nextLunchTitle, cube: nextLunchCubeLabel, imageName: "bowl-plan")
+                        Divider().overlay(Color.controlCream.opacity(0.22))
+                        BowlPlanRow(label: "DINNER", title: nextDinnerTitle, cube: nextDinnerCubeLabel, imageName: "bowl-plan")
+                    }
                 }
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Open meal plan")
             .frame(maxWidth: .infinity)
 
             VStack(spacing: 8) {
                 StreakCard()
                 PhotoCalloutCard()
             }
-            .frame(width: 154)
+            .frame(width: 142)
         }
     }
 
@@ -348,7 +389,7 @@ struct DashboardView: View {
                 subtitle: "Cook once.\nStock your freezer.",
                 symbolName: "pot.fill",
                 color: Color(red: 0.0, green: 0.46, blue: 0.41),
-                action: { activeSheet = .addRecipe }
+                action: { activeSheet = .addFreezerItem }
             )
 
             DashboardActionCard(
@@ -356,7 +397,7 @@ struct DashboardView: View {
                 subtitle: "Assemble fast.\nEat amazing.",
                 symbolName: "takeoutbag.and.cup.and.straw.fill",
                 color: Color(red: 0.78, green: 0.16, blue: 0.06),
-                action: { activeSheet = .addFreezerItem }
+                action: openMealPlan
             )
         }
     }
@@ -372,9 +413,18 @@ struct DashboardView: View {
                         .font(.custom("AvenirNextCondensed-Heavy", size: 13))
                         .foregroundStyle(Color.controlCream.opacity(0.8))
                     Spacer()
-                    Text("SEE ALL >")
+                    Button {
+                        openFreezer()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("SEE ALL")
+                            Image(systemName: "chevron.right")
+                        }
                         .font(.custom("AvenirNextCondensed-Heavy", size: 14))
                         .foregroundStyle(Color(red: 0.0, green: 0.76, blue: 0.70))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("See all freezer items")
                 }
 
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -495,16 +545,16 @@ private struct FreezerConsoleColumn: View {
     let fill: Double
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Text(title)
-                .font(.custom("AvenirNextCondensed-Heavy", size: 18))
+                .font(.custom("AvenirNextCondensed-Heavy", size: 16))
                 .foregroundStyle(Color(red: 0.0, green: 0.31, blue: 0.29))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
             BundleImage(name: imageName)
                 .scaledToFill()
-                .frame(width: 62, height: 62)
+                .frame(width: 56, height: 56)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -514,7 +564,7 @@ private struct FreezerConsoleColumn: View {
 
             VStack(spacing: -3) {
                 Text("\(count)")
-                    .font(.custom("AvenirNextCondensed-Heavy", size: 30))
+                    .font(.custom("AvenirNextCondensed-Heavy", size: 28))
                     .foregroundStyle(Color.black.opacity(0.88))
                 Text(caption)
                     .font(.caption.weight(.bold))
@@ -527,9 +577,9 @@ private struct FreezerConsoleColumn: View {
                 .overlay(alignment: .leading) {
                     Capsule()
                         .fill(Color(red: 0.0, green: 0.76, blue: 0.70))
-                        .frame(width: 58 * fill)
+                        .frame(width: 52 * fill)
                 }
-                .frame(width: 58)
+                .frame(width: 52)
         }
         .frame(maxWidth: .infinity)
     }

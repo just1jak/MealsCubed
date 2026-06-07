@@ -19,7 +19,10 @@ struct AppRootView: View {
         switch selectedTab {
         case .dashboard:
             NavigationStack {
-                DashboardView()
+                DashboardView(
+                    openFreezer: { selectedTab = .freezer },
+                    openMealPlan: { selectedTab = .mealPlan }
+                )
             }
         case .foods:
             NavigationStack {
@@ -127,22 +130,26 @@ private struct ControlRoomTabBar: View {
         }
         .padding(.top, 3)
         .padding(.bottom, 12)
-        .background(
-            LinearGradient(
-                colors: [
-                    Color.controlPanel.opacity(0.98),
-                    Color.black.opacity(0.99)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+        .background {
+            ZStack {
+                Color.black
+                LinearGradient(
+                    colors: [
+                        Color.controlPanel,
+                        Color.black
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
             .ignoresSafeArea(edges: .bottom)
-        )
+        }
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(Color(red: 0.0, green: 0.76, blue: 0.70))
                 .frame(height: 1)
         }
+        .shadow(color: .black.opacity(0.78), radius: 18, x: 0, y: -8)
     }
 }
 

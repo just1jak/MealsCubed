@@ -69,7 +69,7 @@ struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Starter foods, recipes, freezer items, and meal plans will be removed. Your manually added items will stay.")
+            Text("Starter foods, recipes, and freezer items will be removed. Meal plans you built will stay.")
         }
     }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct AppRootView: View {
     @State private var selectedTab: AppTab = .dashboard

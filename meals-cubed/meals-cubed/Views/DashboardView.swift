@@ -31,11 +31,36 @@ struct DashboardView: View {
     }
 
     private var shouldLoadStarterData: Bool {
-        foods.isEmpty || recipes.isEmpty || mealPlanEntries.isEmpty || bowlRecipes.count < 60
+        foods.isEmpty || recipes.isEmpty || bowlRecipes.count < 60
     }
 
     private var plannedCubes: Int {
         min(10, max(8, Int(totalCubes / 5)))
+    }
+
+    private var plannedBowlCount: Int {
+        guard let todaysPlan else { return 0 }
+        return [todaysPlan.lunchName, todaysPlan.dinnerName]
+            .filter { !$0.trimmed.isEmpty }
+            .count
+    }
+
+    private var nextLunchTitle: String {
+        let lunch = todaysPlan?.lunchName.trimmed ?? ""
+        return lunch.isEmpty ? "Pick lunch bowls\nfor this week" : lunch
+    }
+
+    private var nextDinnerTitle: String {
+        let dinner = todaysPlan?.dinnerName.trimmed ?? ""
+        return dinner.isEmpty ? "Choose dinner bowls\nfrom Recipes" : dinner
+    }
+
+    private var nextLunchCubeLabel: String {
+        (todaysPlan?.lunchName.trimmed ?? "").isEmpty ? "SELECT" : "1 CUP"
+    }
+
+    private var nextDinnerCubeLabel: String {
+        (todaysPlan?.dinnerName.trimmed ?? "").isEmpty ? "SELECT" : "1/2 CUP"
     }
 
     var body: some View {
@@ -192,7 +217,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     PrepMetric(symbolName: "square.grid.3x3", value: "\(plannedCubes) / 10", title: "CUBES", subtitle: "planned")
                     Divider().overlay(Color.controlCream.opacity(0.32))
-                    PrepMetric(symbolName: "takeoutbag.and.cup.and.straw", value: "2", title: "BOWLS", subtitle: "planned")
+                    PrepMetric(symbolName: "takeoutbag.and.cup.and.straw", value: "\(plannedBowlCount)", title: "BOWLS", subtitle: "planned")
                 }
                 .frame(width: 112)
             }
@@ -294,9 +319,9 @@ struct DashboardView: View {
                             .foregroundStyle(Color.controlCream)
                     }
 
-                    BowlPlanRow(label: "LUNCH", title: "Korean Beef\nPower Bowl", cube: "1 CUP", imageName: "bowl-plan")
+                    BowlPlanRow(label: "LUNCH", title: nextLunchTitle, cube: nextLunchCubeLabel, imageName: "bowl-plan")
                     Divider().overlay(Color.controlCream.opacity(0.22))
-                    BowlPlanRow(label: "DINNER", title: "Mediterranean\nChickpea Bowl", cube: "1/2 CUP", imageName: "bowl-plan")
+                    BowlPlanRow(label: "DINNER", title: nextDinnerTitle, cube: nextDinnerCubeLabel, imageName: "bowl-plan")
                 }
             }
             .frame(maxWidth: .infinity)
@@ -363,7 +388,6 @@ struct DashboardView: View {
         didAutoLoadStarterData = true
         do {
             try StarterData.load(into: modelContext)
-            message = "Starter library refreshed."
         } catch {
             message = "Could not load starter data: \(error.localizedDescription)"
         }

@@ -2,3 +2,6 @@ DerivedData/
 .xcode-home/
 .DS_Store
 MealCubeTracker-preview*.png
+meals-cubed-week-builder-launch.png
+*.xcuserstate
+xcuserdata/

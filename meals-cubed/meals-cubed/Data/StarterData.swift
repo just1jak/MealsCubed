@@ -14,7 +14,7 @@ enum StarterData {
         try seedFoods(into: context)
         try seedRecipes(into: context)
         try seedFreezerItems(into: context)
-        try seedMealPlan(into: context)
+        try removeStarterMealPlans(from: context)
         try context.save()
     }
 
@@ -95,26 +95,9 @@ enum StarterData {
         }
     }
 
-    private static func seedMealPlan(into context: ModelContext) throws {
-        let existingEntries = try context.fetch(FetchDescriptor<MealPlanEntry>())
-        guard existingEntries.isEmpty else { return }
-
-        let today = Calendar.current.startOfDay(for: Date())
-        for (offset, seed) in mealPlanSeeds.enumerated() {
-            let date = Calendar.current.date(byAdding: .day, value: offset, to: today) ?? today
-            context.insert(MealPlanEntry(
-                date: date,
-                lunchName: seed.lunch,
-                dinnerName: seed.dinner,
-                sideName: seed.side,
-                snackOne: seed.snackOne,
-                snackTwo: seed.snackTwo,
-                plannedCalories: seed.calories,
-                plannedProtein: seed.protein,
-                plannedFiber: seed.fiber,
-                plannedSaturatedFat: seed.saturatedFat,
-                isStarterData: true
-            ))
+    private static func removeStarterMealPlans(from context: ModelContext) throws {
+        for entry in try context.fetch(FetchDescriptor<MealPlanEntry>()).filter(\.isStarterData) {
+            context.delete(entry)
         }
     }
 }
@@ -153,18 +136,6 @@ private struct FreezerSeed {
     let fiber: Double
     let saturatedFat: Double
     let notes: String
-}
-
-private struct MealPlanSeed {
-    let lunch: String
-    let dinner: String
-    let side: String
-    let snackOne: String
-    let snackTwo: String
-    let calories: Double
-    let protein: Double
-    let fiber: Double
-    let saturatedFat: Double
 }
 
 private let foodSeeds: [FoodSeed] = [
@@ -1495,23 +1466,6 @@ private let freezerSeeds: [FreezerSeed] = [
     .init(name: "Edamame Add-On", cubeSize: .oneCup, cubesFrozen: 4, calories: 190, protein: 18, fiber: 8, saturatedFat: 1, notes: "Starter high-protein side"),
     .init(name: "Salsa Verde Sauce", cubeSize: .halfCup, cubesFrozen: 8, calories: 40, protein: 1, fiber: 1, saturatedFat: 0, notes: "Starter sauce inventory"),
     .init(name: "Lemon Dijon Dressing Concentrate", cubeSize: .twoTbsp, cubesFrozen: 12, calories: 80, protein: 0, fiber: 0, saturatedFat: 1, notes: "Starter flavor booster")
-]
-
-private let mealPlanSeeds: [MealPlanSeed] = [
-    .init(lunch: "Lentil-chicken kale salad", dinner: "Turkey & Lentil Chili", side: "Quinoa", snackOne: "Protein shake", snackTwo: "Greek yogurt with berries", calories: 2000, protein: 155, fiber: 35, saturatedFat: 10),
-    .init(lunch: "Turkey taco salad bowl", dinner: "Chicken White Bean Verde Stew", side: "Sweet Potato Mash", snackOne: "Protein shake", snackTwo: "Cottage cheese and orange", calories: 2000, protein: 150, fiber: 32, saturatedFat: 10),
-    .init(lunch: "Chickpea tofu power salad", dinner: "Tofu Chickpea Tomato Curry", side: "Brown Rice", snackOne: "Protein shake", snackTwo: "Greek yogurt and carrots/hummus", calories: 2000, protein: 150, fiber: 38, saturatedFat: 12),
-    .init(lunch: "Lentil-chicken kale salad", dinner: "Turkey & Lentil Chili", side: "Salad or vegetables", snackOne: "Protein shake", snackTwo: "Greek yogurt and fruit", calories: 2000, protein: 155, fiber: 35, saturatedFat: 10),
-    .init(lunch: "Mediterranean edamame salad", dinner: "Chicken White Bean Verde Stew", side: "Brown Rice", snackOne: "Protein shake", snackTwo: "Cottage cheese and apple", calories: 2000, protein: 150, fiber: 32, saturatedFat: 10),
-    .init(lunch: "Turkey taco salad bowl", dinner: "Lentil-Turkey Bolognese", side: "Chickpea pasta", snackOne: "Protein shake", snackTwo: "Greek yogurt with berries", calories: 2050, protein: 155, fiber: 36, saturatedFat: 11),
-    .init(lunch: "Chickpea tofu power salad", dinner: "Tofu Chickpea Tomato Curry", side: "Quinoa", snackOne: "Protein shake", snackTwo: "Greek yogurt and fruit", calories: 2000, protein: 150, fiber: 38, saturatedFat: 12),
-    .init(lunch: "Mediterranean edamame salad", dinner: "Turkey & Lentil Chili", side: "Brown Rice", snackOne: "Protein shake", snackTwo: "Greek yogurt and apple", calories: 2000, protein: 150, fiber: 35, saturatedFat: 10),
-    .init(lunch: "Lentil-chicken kale salad", dinner: "Lentil-Turkey Bolognese", side: "Chickpea pasta", snackOne: "Protein shake", snackTwo: "Cottage cheese with berries", calories: 2050, protein: 155, fiber: 36, saturatedFat: 11),
-    .init(lunch: "Turkey taco salad bowl", dinner: "Chicken White Bean Verde Stew", side: "Sweet Potato Mash", snackOne: "Protein shake", snackTwo: "Greek yogurt and fruit", calories: 2000, protein: 155, fiber: 32, saturatedFat: 10),
-    .init(lunch: "Chickpea tofu power salad", dinner: "Tofu Chickpea Tomato Curry", side: "Brown Rice and Edamame Add-On", snackOne: "Protein shake", snackTwo: "Cottage cheese and carrots/hummus", calories: 2000, protein: 150, fiber: 40, saturatedFat: 12),
-    .init(lunch: "Lentil-chicken kale salad", dinner: "Turkey & Lentil Chili", side: "Quinoa", snackOne: "Protein shake", snackTwo: "Greek yogurt and nuts/fruit", calories: 2000, protein: 155, fiber: 35, saturatedFat: 11),
-    .init(lunch: "Mediterranean edamame salad", dinner: "Chicken White Bean Verde Stew", side: "Salad and corn tortillas", snackOne: "Protein shake", snackTwo: "Greek yogurt and apple", calories: 2000, protein: 150, fiber: 32, saturatedFat: 10),
-    .init(lunch: "Turkey taco salad bowl", dinner: "Lentil-Turkey Bolognese", side: "Roasted vegetables or chickpea pasta", snackOne: "Protein shake", snackTwo: "Greek yogurt with berries", calories: 2050, protein: 155, fiber: 36, saturatedFat: 11)
 ]
 
 private extension String {

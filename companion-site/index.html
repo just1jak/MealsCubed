@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MealCube Companion Planner</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-console">
+      <div class="brand-panel">
+        <p class="eyebrow">Culinary Control Room</p>
+        <h1>MealCube Planner</h1>
+        <p class="subhead">Build freezer batches, assign the coming weeks, and leave with one shopping cart.</p>
+      </div>
+
+      <form class="prep-panel" id="plannerSettings" aria-label="Planner settings">
+        <label>
+          <span>Start</span>
+          <input id="startDate" type="date">
+        </label>
+
+        <label>
+          <span>Weeks</span>
+          <select id="weekCount">
+            <option value="1">1 week</option>
+            <option value="2">2 weeks</option>
+            <option value="3">3 weeks</option>
+            <option value="4">4 weeks</option>
+          </select>
+        </label>
+
+        <fieldset class="slot-switches" aria-label="Meal slots">
+          <legend>Slots</legend>
+          <label><input id="slotLunch" type="checkbox" checked> Lunch</label>
+          <label><input id="slotDinner" type="checkbox" checked> Dinner</label>
+          <label><input id="slotSnack" type="checkbox" checked> Snack</label>
+        </fieldset>
+
+        <div class="action-row">
+          <button class="button primary" type="button" data-action="build">Build Plan</button>
+          <button class="button quiet" type="button" data-action="clear-plan">Clear</button>
+        </div>
+      </form>
+    </header>
+
+    <main>
+      <section class="status-band" aria-label="Planner status">
+        <article>
+          <span class="metric-label">Selected</span>
+          <strong id="selectedCount">0</strong>
+          <span id="selectedBreakdown">0 meals, 0 snacks</span>
+        </article>
+        <article>
+          <span class="metric-label">Plan Slots</span>
+          <strong id="slotCount">0</strong>
+          <span id="slotBreakdown">No plan built</span>
+        </article>
+        <article>
+          <span class="metric-label">Daily Average</span>
+          <strong id="avgProtein">0g</strong>
+          <span id="avgNutrition">0 cals, 0g fiber</span>
+        </article>
+        <article>
+          <span class="metric-label">Shopping Cart</span>
+          <strong id="cartCount">0</strong>
+          <span id="cartProgress">0 checked</span>
+        </article>
+      </section>
+
+      <section class="workbench">
+        <div class="catalog-column">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Recipe Catalog</p>
+              <h2>Pick This Prep Run</h2>
+            </div>
+            <button class="button small" type="button" data-action="select-visible">Select Visible</button>
+          </div>
+
+          <div class="filter-bar">
+            <label class="search-field">
+              <span>Search</span>
+              <input id="searchInput" type="search" placeholder="Recipe, ingredient, theme">
+            </label>
+            <label>
+              <span>Type</span>
+              <select id="typeFilter">
+                <option value="all">All</option>
+                <option value="meal">Meals</option>
+                <option value="snack">Snacks</option>
+              </select>
+            </label>
+            <label>
+              <span>Theme</span>
+              <select id="themeFilter">
+                <option value="all">All themes</option>
+              </select>
+            </label>
+            <label class="check-filter">
+              <input id="vegFilter" type="checkbox">
+              Vegetarian
+            </label>
+          </div>
+
+          <div class="theme-rail" id="themeChips" aria-label="Theme filters"></div>
+          <div class="catalog-grid" id="catalogGrid"></div>
+        </div>
+
+        <aside class="plan-column">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Coming Weeks</p>
+              <h2>Meal Plan</h2>
+            </div>
+            <button class="button small" type="button" data-action="copy-plan">Copy</button>
+          </div>
+          <div class="plan-board" id="planBoard"></div>
+        </aside>
+      </section>
+
+      <section class="cart-console">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Buy List</p>
+            <h2>Shopping Cart</h2>
+          </div>
+          <div class="action-row">
+            <button class="button small" type="button" data-action="download">Export JSON</button>
+            <button class="button small" type="button" data-action="print">Print</button>
+          </div>
+        </div>
+        <div class="cart-grid" id="shoppingCart"></div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

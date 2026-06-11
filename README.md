@@ -7,10 +7,15 @@ MealCube Tracker is a local-first iOS 17 SwiftUI app for planning LDL-friendly, 
 - SwiftUI tab app with Dashboard, Foods, Recipes, Freezer, and Meal Plan tabs.
 - SwiftData models for foods, recipes, freezer inventory, and meal plan entries.
 - Starter data loader and reset flow in Settings.
+- Static companion website in `companion-site/` for laptop meal planning and shopping-list prep.
 - Recipe search and filters for status, type, cube size, vegetarian, high protein, and high fiber.
 - Freezer inventory controls for incrementing and decrementing cube counts.
 - Meal plan daily totals compared with calorie, protein, fiber, and saturated-fat targets.
 - Health target disclaimer in Settings.
+
+## Companion Website
+
+Open `companion-site/index.html` in a desktop browser to select recipes, generate week-by-week plans, edit daily slots, and build a shopping cart from the selected meals and snacks.
 
 ## Requirements
 
